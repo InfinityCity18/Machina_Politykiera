@@ -16,13 +16,13 @@ fn main() -> io::Result<()> {
 
     let tx_title_anim = event_tx.clone();
     thread::spawn(move || {
-        app::cycle_title(tx_title_anim);
+        app::cycle_title(tx_title_anim, String::from("Machina Politykiera "));
     });
 
     let mut app = app::App {
         exit: false,
         progress_bar_color: Color::Green,
-        title_text: String::from("Machina Politykiera"),
+        title_text: String::from("Machina Politykiera "),
     };
 
     let app_result = app.run(&mut terminal, event_rx);

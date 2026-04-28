@@ -11,8 +11,7 @@ pub struct App {
     pub title_text: String,
 }
 
-pub fn cycle_title(tx: mpsc::Sender<Event>) {
-    let mut text = String::from("Machina Politykiera");
+pub fn cycle_title(tx: mpsc::Sender<Event>, mut text: String) {
     loop {
         let mut m: Vec<char> = text.chars().collect();
         m.rotate_left(1);

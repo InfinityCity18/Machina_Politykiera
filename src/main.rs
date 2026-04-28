@@ -7,11 +7,11 @@ mod app;
 fn main() -> io::Result<()> {
     let mut terminal = ratatui::init();
 
-    let (event_tx, event_rx) = mpsc::channel::<app::input::Event>();
+    let (event_tx, event_rx) = mpsc::channel::<app::events::Event>();
 
     let tx_to_input_events = event_tx.clone();
     thread::spawn(move || {
-        app::input::handle_input_events(tx_to_input_events);
+        app::events::handle_input_events(tx_to_input_events);
     });
 
     let tx_to_background_progress_events = event_tx.clone();

@@ -1,9 +1,9 @@
 use ratatui::{style::Color, DefaultTerminal, Frame};
 use std::{io, sync::mpsc, thread, time::Duration};
 
-pub mod input;
+pub mod events;
 mod widgets;
-use input::Event;
+use events::Event;
 
 pub struct App {
     pub exit: bool,

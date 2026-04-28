@@ -8,17 +8,17 @@ use events::Event;
 pub struct App {
     pub exit: bool,
     pub progress_bar_color: Color,
-    pub background_progress: f64,
+    pub title_text: String,
 }
 
-pub fn run_background_thread(tx: mpsc::Sender<Event>) {
-    let mut progress = 0_f64;
-    let increment = 0.01_f64;
+pub fn cycle_title(tx: mpsc::Sender<Event>) {
+    let mut text = String::from("Machina Politykiera");
     loop {
+        let mut m: Vec<char> = text.chars().collect();
+        m.rotate_left(1);
+        text = m.into_iter().collect();
         thread::sleep(Duration::from_millis(100));
-        progress += increment;
-        progress = progress.min(1_f64);
-        tx.send(Event::Progress(progress)).unwrap();
+        tx.send(Event::Title(text.clone())).unwrap();
     }
 }
 

@@ -9,20 +9,20 @@ fn main() -> io::Result<()> {
 
     let (event_tx, event_rx) = mpsc::channel::<app::events::Event>();
 
-    let tx_to_input_events = event_tx.clone();
+    let tx_input_events = event_tx.clone();
     thread::spawn(move || {
-        app::events::handle_input_events(tx_to_input_events);
+        app::events::handle_input_events(tx_input_events);
     });
 
-    let tx_to_background_progress_events = event_tx.clone();
+    let tx_title_anim = event_tx.clone();
     thread::spawn(move || {
-        app::run_background_thread(tx_to_background_progress_events);
+        app::cycle_title(tx_title_anim);
     });
 
     let mut app = app::App {
         exit: false,
         progress_bar_color: Color::Green,
-        background_progress: 0_f64,
+        title_text: String::from("Machina Politykiera"),
     };
 
     let app_result = app.run(&mut terminal, event_rx);

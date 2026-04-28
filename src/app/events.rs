@@ -13,7 +13,7 @@ pub fn handle_input_events(tx: mpsc::Sender<Event>) {
 
 pub enum Event {
     Key(crossterm::event::KeyEvent),
-    Progress(f64),
+    Title(String),
 }
 
 use crate::app::App;
@@ -22,7 +22,7 @@ impl App {
     pub fn handle_events(&mut self, rx: &mpsc::Receiver<Event>) -> io::Result<()> {
         match rx.recv().unwrap() {
             Event::Key(key_event) => self.handle_key_event(key_event)?,
-            Event::Progress(progress) => self.background_progress = progress,
+            Event::Title(text) => self.title_text = text,
         }
         Ok(())
     }

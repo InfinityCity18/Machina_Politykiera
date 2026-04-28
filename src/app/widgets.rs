@@ -1,53 +1,52 @@
 use crate::app::App;
+use ratatui::layout::Direction;
+use ratatui::widgets::{Borders, Paragraph};
 use ratatui::{
     layout::{Constraint, Layout},
     prelude::{Buffer, Rect},
-    style::{Style, Stylize},
-    symbols::border,
-    text::Line,
-    widgets::{Block, Gauge, Widget},
+    widgets::{Block, Widget},
 };
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let vertical_layout =
-            Layout::vertical([Constraint::Percentage(20), Constraint::Percentage(80)]);
-        let [title_area, gauge_area] = vertical_layout.areas(area);
+        let columns = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Ratio(1, 3),
+                Constraint::Ratio(1, 3),
+                Constraint::Ratio(1, 3),
+            ])
+            .split(area);
 
-        Line::from("Process overview")
-            .bold()
-            .render(title_area, buf);
+        let left_rows = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)])
+            .split(columns[0]);
 
-        let instructions = Line::from(vec![
-            " Change color ".into(),
-            "<C>".blue().bold(),
-            " Quit ".into(),
-            "<Q> ".blue().bold(),
-        ])
-        .centered();
+        let middle_rows = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Ratio(2, 5), Constraint::Ratio(3, 5)])
+            .split(columns[1]);
 
-        let block = Block::bordered()
-            .title(Line::from(" Background processes "))
-            .title_bottom(instructions)
-            .border_set(border::THICK);
+        let right_rows = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Ratio(2, 5), Constraint::Ratio(3, 5)])
+            .split(columns[2]);
 
-        let progress_bar = Gauge::default()
-            .gauge_style(Style::default().fg(self.progress_bar_color))
-            .block(block)
-            .label(format!(
-                "Process 1: {:.2}%",
-                self.background_progress * 100_f64
-            ))
-            .ratio(self.background_progress);
+        // Render Blocks into each of the 6 sections to visualize the grid
+        let block1 = Block::default().title(" Block 1 ").borders(Borders::ALL);
+        let block2 = Block::default().title(" Block 2 ").borders(Borders::ALL);
+        let block3 = Block::default().title(" Block 3 ").borders(Borders::ALL);
 
-        progress_bar.render(
-            Rect {
-                x: gauge_area.left(),
-                y: gauge_area.top(),
-                width: gauge_area.width,
-                height: 3,
-            },
-            buf,
-        );
+        let block4 = Block::default().title(" Block 4 ").borders(Borders::ALL);
+        let block5 = Block::default().title(" Block 5 ").borders(Borders::ALL);
+        let block6 = Block::default().title(" Block 6 ").borders(Borders::ALL);
+
+        block1.render(left_rows[0], buf);
+        block2.render(left_rows[1], buf);
+        block3.render(middle_rows[0], buf);
+        block4.render(middle_rows[1], buf);
+        block5.render(right_rows[0], buf);
+        block6.render(right_rows[1], buf);
     }
 }

@@ -6,7 +6,13 @@ pub struct ProcessList {
 }
 
 impl ProcessList {
-    /// Updates list of processes by calling 
+
+    /// Creates new, empty instance of `ProcessList`
+    pub fn new() -> Self {
+        Self { processes: vec![] }
+    }
+
+    /// Updates list of processes
     pub fn update(&mut self) {
         match process::all_processes() {
             Ok(proc_it) => {

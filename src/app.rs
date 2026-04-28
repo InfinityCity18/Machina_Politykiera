@@ -2,7 +2,9 @@ use ratatui::{style::Color, DefaultTerminal, Frame};
 use std::{io, sync::mpsc, thread, time::Duration};
 
 pub mod events;
-mod process_list;
+mod processlist;
+mod scansettings;
+mod memoryscanner;
 mod widgets;
 use events::Event;
 

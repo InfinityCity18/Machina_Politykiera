@@ -5,6 +5,7 @@ pub mod events;
 mod processlist;
 mod scansettings;
 mod memoryscanner;
+mod memoryaddress;
 mod widgets;
 use events::Event;
 

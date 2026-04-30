@@ -2,6 +2,10 @@ use ratatui::{style::Color, DefaultTerminal, Frame};
 use std::{io, sync::mpsc, thread, time::Duration};
 
 pub mod events;
+mod processlist;
+mod scansettings;
+mod memoryscanner;
+mod memoryaddress;
 mod widgets;
 use events::Event;
 
@@ -9,6 +13,9 @@ pub struct App {
     pub exit: bool,
     pub progress_bar_color: Color,
     pub title_text: String,
+    //selected_process -> Process
+    //list_of_scanned_processes -> MemoryScan
+    //list_of_pinned_processes -> PinnedProcesses
 }
 
 pub fn cycle_title(tx: mpsc::Sender<Event>, mut text: String) {

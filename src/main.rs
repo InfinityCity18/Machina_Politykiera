@@ -15,7 +15,7 @@ fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
 
     let tx_process_update = event_tx.clone();
     thread::spawn(move || {
-        app::processlist::update_processes_periodically(tx_process_update, 100);
+        app::processlist::update_processes_periodically(tx_process_update, 1);
     });
 }
 fn main() -> io::Result<()> {

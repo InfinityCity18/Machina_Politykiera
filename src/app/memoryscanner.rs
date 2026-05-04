@@ -1,20 +1,25 @@
 use std::error::Error;
 
-use nix::{sys::ptrace::{attach, detach}, unistd::Pid};
+use nix::{
+    sys::ptrace::{attach, detach},
+    unistd::Pid,
+};
 
-use crate::app::{memoryaddress::MemoryAddress, scansettings::ScanSettings};
+use crate::app::{memoryaddress::MemoryAddress, scansettings::ScanSettings, App};
 
 // we need to hold the memory values for displaying ehhhh
+// truly
 
 pub struct MemoryScanner {
-    matching_addresses: Vec<MemoryAddress> 
+    matching_addresses: Vec<MemoryAddress>,
 }
 
 impl MemoryScanner {
-
     /// Creates new instance of `MemoryScanner`
     pub fn new() -> Self {
-        Self { matching_addresses: vec![] }
+        Self {
+            matching_addresses: vec![],
+        }
     }
 
     pub fn first_scan(&mut self, scan_settings: ScanSettings) -> Result<(), Box<dyn Error>> {
@@ -25,9 +30,7 @@ impl MemoryScanner {
         Ok(())
     }
 
-    pub fn next_scan(&mut self, scan_settings: ScanSettings) {
-
-    }
+    pub fn next_scan(&mut self, scan_settings: ScanSettings) {}
 }
 
 /*

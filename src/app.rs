@@ -1,35 +1,43 @@
-use ratatui::{style::Color, DefaultTerminal, Frame};
-use std::{io, sync::mpsc, thread, time::Duration};
+use ratatui::{DefaultTerminal, Frame};
+use std::{io, sync::mpsc};
 
 pub mod events;
-mod processlist;
-mod scansettings;
-mod memoryscanner;
 mod memoryaddress;
-mod widgets;
+mod memoryscanner;
+pub mod processlist;
+mod scansettings;
+pub mod tui;
 use events::Event;
+
+use crate::app::memoryscanner::MemoryScanner;
+use crate::app::processlist::ProcessList;
 
 pub struct App {
     pub exit: bool,
-    pub progress_bar_color: Color,
     pub title_text: String,
+
+    // selected_process: Process  <--- initialization problem, see below
+    memory_scanner: MemoryScanner,
+    process_list: ProcessList,
     //selected_process -> Process
-    //list_of_scanned_processes -> MemoryScan
+    //list_of_scanned_processes -> MemoryScan <-- would get rid of
     //list_of_pinned_processes -> PinnedProcesses
 }
 
-pub fn cycle_title(tx: mpsc::Sender<Event>) {
-    let mut text = String::from("Machina Politykiera");
-    loop {
-        let mut m: Vec<char> = text.chars().collect();
-        m.rotate_left(1);
-        text = m.into_iter().collect();
-        thread::sleep(Duration::from_millis(100));
-        tx.send(Event::Title(text.clone())).unwrap();
-    }
-}
-
 impl App {
+    pub fn new() -> Self {
+        let mut me = Self {
+            exit: false,
+            title_text: String::from("Machina Politykiera"),
+            //selected_process: no idea how to initialize,
+            memory_scanner: MemoryScanner::new(),
+            process_list: ProcessList::new(),
+        };
+
+        me.process_list.update();
+        me
+    }
+
     pub fn run(
         &mut self,
         terminal: &mut DefaultTerminal,
@@ -42,7 +50,7 @@ impl App {
         Ok(())
     }
 
-    fn draw(&self, frame: &mut Frame) {
+    fn draw(&mut self, frame: &mut Frame) {
         frame.render_widget(self, frame.area());
     }
 }

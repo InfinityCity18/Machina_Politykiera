@@ -8,23 +8,25 @@ pub mod processlist;
 mod scansettings;
 pub mod tui;
 use events::Event;
+use events::Focus;
 
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
 
-pub struct App {
+pub struct App<'a> {
     pub exit: bool,
     pub title_text: String,
 
     // selected_process: Process  <--- initialization problem, see below
     memory_scanner: MemoryScanner,
-    process_list: ProcessList,
+    process_list: ProcessList<'a>,
     //selected_process -> Process
     //list_of_scanned_processes -> MemoryScan <-- would get rid of
     //list_of_pinned_processes -> PinnedProcesses
+    focus_window: Focus,
 }
 
-impl App {
+impl App<'_> {
     pub fn new() -> Self {
         let mut me = Self {
             exit: false,
@@ -32,6 +34,7 @@ impl App {
             //selected_process: no idea how to initialize,
             memory_scanner: MemoryScanner::new(),
             process_list: ProcessList::new(),
+            focus_window: Focus::ProcessListWindow,
         };
 
         me.process_list.update();

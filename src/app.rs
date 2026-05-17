@@ -2,16 +2,20 @@ use ratatui::{DefaultTerminal, Frame};
 use std::{io, sync::mpsc};
 
 pub mod events;
+mod inputfield;
 mod memoryaddress;
 mod memoryscanner;
 pub mod processlist;
 mod scansettings;
 pub mod tui;
+
 use events::Event;
 use events::Focus;
 
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
+
+use inputfield::InputField;
 
 pub struct App<'a> {
     pub exit: bool,
@@ -24,6 +28,7 @@ pub struct App<'a> {
     //list_of_scanned_processes -> MemoryScan <-- would get rid of
     //list_of_pinned_processes -> PinnedProcesses
     focus_window: Focus,
+    input_field: InputField,
 }
 
 impl App<'_> {
@@ -35,6 +40,7 @@ impl App<'_> {
             memory_scanner: MemoryScanner::new(),
             process_list: ProcessList::new(),
             focus_window: Focus::ProcessListWindow,
+            input_field: InputField::new(),
         };
 
         me.process_list.update();

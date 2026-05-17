@@ -1,10 +1,9 @@
 use crate::app::Event;
 use procfs::process::{self, Process};
-use ratatui::style::{Color, Style};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    widgets::{Block, Borders, List, ListItem, ListState, StatefulWidget, Widget},
+    widgets::{List, ListItem, ListState, StatefulWidget, Widget},
 };
 use std::sync::mpsc;
 use std::thread;

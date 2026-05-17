@@ -15,7 +15,7 @@ impl ScanSettings {
     pub fn process(&self) -> &Rc<Process> {
         &self.process
     }
-    
+
     pub fn value(&self) -> &ScanValue {
         &self.value
     }
@@ -29,7 +29,7 @@ pub enum ScanValue {
     Float(f32),
     Double(f64),
     String(String),
-    Array(Vec<u8>) //if very bored, change to &[u8], but fun with lifetimes is not worth it for now
+    Array(Vec<u8>), //if very bored, change to &[u8], but fun with lifetimes is not worth it for now
 }
 
 impl ScanValue {
@@ -68,7 +68,8 @@ impl ScanValue {
 
             String(s) => Box::from(s.as_bytes()),
 
-            Array(v) => Box::from(v.as_slice())
+            Array(v) => Box::from(v.as_slice()),
         }
     }
 }
+

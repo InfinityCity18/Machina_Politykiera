@@ -1,11 +1,15 @@
-use std::{io, sync::mpsc};
-
 use crossterm::event::{KeyCode, KeyEventKind};
+use std::{error::Error, io, result::Result, sync::mpsc};
+
 pub fn handle_input_events(tx: mpsc::Sender<Event>) {
     loop {
-        match crossterm::event::read().unwrap() {
-            crossterm::event::Event::Key(key_event) => tx.send(Event::Key(key_event)).unwrap(),
-            _ => {}
+        match crossterm::event::read() {
+            Ok(crossterm::event::Event::Key(key_event)) => match tx.send(Event::Key(key_event)) {
+                Ok(_) => (),
+                Err(_) => todo!("handle error bruh"),
+            },
+            Err(_) => todo!("handle error bruh"),
+            _ => (),
         }
     }
 }
@@ -16,32 +20,40 @@ pub enum Event {
     ProcessesRefresh,
 }
 
+#[derive(Clone)]
 pub enum Focus {
     ProcessListWindow,
     MemoryListWindow,
     PinnedMemoryWindow,
+    ValueInputField,
 }
 use crate::app::App;
 
 impl App<'_> {
-    pub fn handle_events(&mut self, rx: &mpsc::Receiver<Event>) -> io::Result<()> {
-        match rx.recv().unwrap() {
-            Event::Key(key_event) => self.handle_key_event(key_event)?,
-            Event::Title(text) => self.title_text = text,
-            Event::ProcessesRefresh => self.process_list.update(),
+    pub fn handle_events(&mut self, rx: &mpsc::Receiver<Event>) -> Result<(), Box<dyn Error>> {
+        match rx.recv() {
+            Ok(Event::Key(key_event)) => self.handle_key_event(key_event)?,
+            Ok(Event::Title(text)) => self.title_text = text,
+            Ok(Event::ProcessesRefresh) => self.process_list.update(),
+            Err(_) => todo!("handle error bruh"),
         }
         Ok(())
     }
     fn handle_key_event(&mut self, key_event: crossterm::event::KeyEvent) -> io::Result<()> {
         if key_event.kind == KeyEventKind::Press {
-            match key_event.code {
-                KeyCode::Char('q') => self.exit = true,
-                KeyCode::Char('p') => self.focus_window = Focus::ProcessListWindow,
-                KeyCode::Char('m') => self.focus_window = Focus::MemoryListWindow,
-                KeyCode::Char('n') => todo!(), // next scan
-                KeyCode::Char('f') => todo!(), // first scan
-                KeyCode::Char('o') => self.focus_window = Focus::PinnedMemoryWindow, // override
-                _ => match self.focus_window {
+            match (key_event.code, self.focus_window.clone()) {
+                (KeyCode::Enter, _) => self.focus_window = Focus::ValueInputField,
+                (KeyCode::Esc, _) => self.focus_window = Focus::ProcessListWindow,
+                (KeyCode::Char(_), Focus::ValueInputField) => {
+                    self.input_field.handle_key_event(key_event)
+                }
+                (KeyCode::Char('q'), _) => self.exit = true,
+                (KeyCode::Char('p'), _) => self.focus_window = Focus::ProcessListWindow,
+                (KeyCode::Char('m'), _) => self.focus_window = Focus::MemoryListWindow,
+                (KeyCode::Char('n'), _) => todo!(), // next scan
+                (KeyCode::Char('f'), _) => todo!(), // first scan
+                (KeyCode::Char('o'), _) => self.focus_window = Focus::PinnedMemoryWindow, // override
+                (_, _) => match self.focus_window {
                     Focus::ProcessListWindow => self.handle_process_list_key_event(key_event),
                     _ => (),
                 },

@@ -68,12 +68,13 @@ impl Widget for &mut App<'_> {
             Focus::PinnedMemoryWindow => {
                 block6 = block6.border_style(Style::default().fg(Color::Green));
             }
+            _ => {}
         };
 
         p.render(left_rows[0], buf);
         block2.render(left_rows[1], buf);
         block4.render(middle_rows[1], buf);
-        block5.render(right_rows[0], buf);
+        //block5.render(right_rows[0], buf);
         block6.render(right_rows[1], buf);
 
         if matches!(self.focus_window, Focus::ProcessListWindow) {}
@@ -81,5 +82,6 @@ impl Widget for &mut App<'_> {
         (&block3).render(middle_rows[0], buf);
 
         self.process_list.render(block3.inner(middle_rows[0]), buf);
+        self.input_field.render(right_rows[0], buf);
     }
 }

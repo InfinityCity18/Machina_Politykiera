@@ -4,18 +4,17 @@ use procfs::process::Process;
 
 pub struct ScanSettings {
     process: Process,
-    value: ScanValue
-    //process to scan
-    //type len (byte,word,dword, etc.) or enum of types
-    //first scan or next scan
-    //unsigned or signed bool
+    value: ScanValue, //process to scan
+                      //type len (byte,word,dword, etc.) or enum of types
+                      //first scan or next scan
+                      //unsigned or signed bool
 }
 
 impl ScanSettings {
     pub fn process(&self) -> &Process {
         &self.process
     }
-    
+
     pub fn value(&self) -> &ScanValue {
         &self.value
     }
@@ -29,7 +28,7 @@ pub enum ScanValue {
     Float(f32),
     Double(f64),
     String(String),
-    Array(Vec<u8>) //if very bored, change to &[u8], but fun with lifetimes is not worth it for now
+    Array(Vec<u8>), //if very bored, change to &[u8], but fun with lifetimes is not worth it for now
 }
 
 impl ScanValue {
@@ -68,7 +67,8 @@ impl ScanValue {
 
             String(s) => Box::from(s.as_bytes()),
 
-            Array(v) => Box::from(v.as_slice())
+            Array(v) => Box::from(v.as_slice()),
         }
     }
 }
+

@@ -1,5 +1,7 @@
 use std::{io, sync::mpsc, thread};
 
+use crate::app::tui::title;
+
 mod app;
 
 fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
@@ -10,7 +12,7 @@ fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
 
     let tx_title_anim = event_tx.clone();
     thread::spawn(move || {
-        app::tui::title::cycle_title(tx_title_anim, String::from("Machina Politykiera "));
+        app::tui::title::cycle_title(tx_title_anim, title::TITLE.to_string());
     });
 
     let tx_process_update = event_tx.clone();

@@ -1,17 +1,17 @@
-use std::io::Read;
+use std::{io::Read, rc::Rc};
 
 use procfs::process::Process;
 
 pub struct ScanSettings {
-    process: Process,
-    value: ScanValue, //process to scan
-                      //type len (byte,word,dword, etc.) or enum of types
-                      //first scan or next scan
-                      //unsigned or signed bool
+    process: Rc<Process>,
+    value: ScanValue
+    //type len (byte,word,dword, etc.) or enum of types
+    //first scan or next scan
+    //unsigned or signed bool
 }
 
 impl ScanSettings {
-    pub fn process(&self) -> &Process {
+    pub fn process(&self) -> &Rc<Process> {
         &self.process
     }
 

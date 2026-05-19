@@ -1,5 +1,6 @@
 use ratatui::{DefaultTerminal, Frame};
 use std::{io, sync::mpsc};
+use text_to_ascii_art::to_art;
 
 pub mod events;
 mod inputfield;
@@ -14,6 +15,7 @@ use events::Focus;
 
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
+use crate::app::tui::title;
 
 use inputfield::InputField;
 
@@ -35,7 +37,8 @@ impl App<'_> {
     pub fn new() -> Self {
         let mut me = Self {
             exit: false,
-            title_text: String::from("Machina Politykiera"),
+            title_text: String::from(""), // this doesn't matter. Gets set by running title cycling
+            // thread
             //selected_process: no idea how to initialize,
             memory_scanner: MemoryScanner::new(),
             process_list: ProcessList::new(),

@@ -23,7 +23,7 @@ impl Widget for &mut App<'_> {
 
         let left_cols = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)])
+            .constraints([Constraint::Length(10), Constraint::Fill(1)])
             .split(columns[0]);
 
         let middle_cols = Layout::default()

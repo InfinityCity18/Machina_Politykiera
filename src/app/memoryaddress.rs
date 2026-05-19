@@ -3,13 +3,14 @@ use std::{error::Error, fs::File, io::{Read, Seek}, rc::Rc};
 use procfs::process::Process;
 
 pub struct MemoryAddress {
-    process: Rc<Process>,
-    offset: usize,
+    pub process: Rc<Process>,
+    pub len: usize,
+    pub offset: usize,
 }
 
 impl MemoryAddress {
-    pub fn new(process: Rc<Process>, offset: usize) -> Self {
-        Self { process: process.clone(), offset }
+    pub fn new(process: Rc<Process>, len: usize, offset: usize) -> Self {
+        Self { process: process, len, offset }
     }
 
     pub fn matches(&self, pat: &[u8], file: &mut File) -> Result<bool, Box<dyn Error>> {

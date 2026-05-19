@@ -23,6 +23,22 @@ impl MemoryScanner {
         }
     }
 
+    pub fn addresses_and_values(&self) -> Result<Vec<(usize, Vec<u8>)>, Box<dyn Error>> {
+        let process = &self.matching_addresses[0].process; // bad handling lol
+        attach(Pid::from_raw(process.pid()))?;
+        let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
+        let mut v = Vec::new();
+        for addr in &self.matching_addresses {
+            let mut buf = Vec::with_capacity(addr.len);
+            if file.seek(std::io::SeekFrom::Start(addr.offset as u64)).is_err() {
+                continue;
+            }
+            file.read_to_end(&mut buf);
+            v.push((addr.offset, buf));
+        }
+        Ok(v)
+    }
+
     // Returns a list of addresses of process memory where value matches pattern 
     fn kmp(file: &mut File, pattern: &[u8], len: usize, process: Rc<Process>, start_offset: usize) -> Result<Vec<MemoryAddress>,Box<dyn Error>> {
         fn prefix_function(pat: &[u8]) -> Vec<usize> {
@@ -56,7 +72,7 @@ impl MemoryScanner {
                 bufread.read(std::slice::from_mut(&mut chr))?;
             }
             if j == pattern.len() {
-                matching_addresses.push( MemoryAddress::new(process.clone(), start_offset + i - j));
+                matching_addresses.push( MemoryAddress::new(process.clone(), pattern.len(),  start_offset + i - j));
                 j = lps[j - 1];
             } else if i < len && pattern[j] != chr {
                 if j != 0 {
@@ -91,8 +107,26 @@ impl MemoryScanner {
         Ok(())
     }
 
-    pub fn next_scan(&mut self, scan_settings: ScanSettings) {
-        
+    pub fn next_scan(&mut self, scan_settings: ScanSettings) -> Result<(), Box<dyn Error>> {
+        let process = scan_settings.process();
+        attach(Pid::from_raw(process.pid()))?;
+        let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
+
+        for addr in &self.matching_addresses {
+            file.seek(std::io::SeekFrom::Start(addr.offset.try_into()?))?;
+
+        }
+        self.matching_addresses.retain(|addr| {
+            if file.seek(std::io::SeekFrom::Start(addr.offset as u64)).is_err() {
+                return false
+            }
+            let mut buf = Vec::with_capacity(addr.len);
+            // Decided to compare even if it didnt read
+            let _ = file.read_to_end(&mut buf);
+            scan_settings.value().as_bytes() == buf.as_slice().into()
+        });
+        detach(Pid::from_raw(process.pid()), None)?;
+        Ok(())
     }
 }
 

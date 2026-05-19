@@ -63,6 +63,14 @@ impl ProcessList<'_> {
     pub fn get(&self) -> &Vec<Process> {
         &self.processes
     }
+
+    /// Returns the currently selected process
+    pub fn get_selected(&self) -> Option<&Process> {
+        match self.widget_state.selected() {
+            Some(i) => Some(&self.processes[i]),
+            None => None,
+        }
+    }
 }
 
 impl Widget for &mut ProcessList<'_> {

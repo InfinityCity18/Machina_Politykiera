@@ -1,6 +1,7 @@
+use procfs::process::Process;
 use ratatui::{DefaultTerminal, Frame};
+use std::io::Empty;
 use std::{io, sync::mpsc};
-use text_to_ascii_art::to_art;
 
 pub mod events;
 mod inputfield;
@@ -15,7 +16,6 @@ use events::Focus;
 
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
-use crate::app::tui::title;
 
 use inputfield::InputField;
 
@@ -23,7 +23,7 @@ pub struct App<'a> {
     pub exit: bool,
     pub title_text: String,
 
-    // selected_process: Process  <--- initialization problem, see below
+    selected_process: Option<Process>,
     memory_scanner: MemoryScanner,
     process_list: ProcessList<'a>,
     //selected_process -> Process
@@ -38,12 +38,11 @@ impl App<'_> {
         let mut me = Self {
             exit: false,
             title_text: String::from(""), // this doesn't matter. Gets set by running title cycling
-            // thread
-            //selected_process: no idea how to initialize,
+            selected_process: None,
             memory_scanner: MemoryScanner::new(),
             process_list: ProcessList::new(),
             focus_window: Focus::ProcessListWindow,
-            input_field: InputField::new(),
+            input_field: InputField::new(" [V]alue ".to_string()),
         };
 
         me.process_list.update();

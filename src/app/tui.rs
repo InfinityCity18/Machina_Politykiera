@@ -47,14 +47,20 @@ impl Widget for &mut App<'_> {
             .borders(Borders::ALL);
 
         (&scan_options_block).render(right_cols[0], buf);
-        let mut scan_options_column = Layout::default()
+        let scan_options_column = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Length(3),
                 Constraint::Length(3),
-                Constraint::Min(0),
+                Constraint::Length(3),
+                Constraint::Fill(1),
             ])
             .split(scan_options_block.inner(right_cols[0]));
+
+        let scan_info_row = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Fill(1), Constraint::Fill(1)])
+            .split(scan_options_column[3]);
 
         let mut pinned_memory_block = Block::default()
             .title(" Pinned memory ")
@@ -94,15 +100,28 @@ impl Widget for &mut App<'_> {
         // draw scan options
         self.input_field.render(scan_options_column[0], buf);
 
-        let type_selection =
-            Paragraph::new("Type select goes here").block(Block::default().borders(Borders::ALL));
+        let type_selection = Paragraph::new("Type select goes here")
+            .block(Block::default().borders(Borders::ALL).title(" [T]ype "));
         type_selection.render(scan_options_column[1], buf);
 
-        let scan_info_text = Paragraph::new(
-            "Type the [V]alue above and press enter to search for the associated [T]ype.",
-        )
-        .wrap(Wrap { trim: true });
+        let scan_info_text =
+            Paragraph::new("Type above a [V]alue of the selected [T]ype then perform:")
+                .wrap(Wrap { trim: true });
+
         scan_info_text.render(scan_options_column[2], buf);
+        let first_scan_info =
+            Paragraph::new("[F]irst scan to find all memory adresses with matching values")
+                .block(Block::default().borders(Borders::all()))
+                .wrap(Wrap { trim: true });
+
+        first_scan_info.render(scan_info_row[0], buf);
+        let next_scan_info = Paragraph::new(
+            "[N]ext scan to filter out found memory adresses that don't match the value",
+        )
+        .block(Block::default().borders(Borders::all()))
+        .wrap(Wrap { trim: true });
+
+        next_scan_info.render(scan_info_row[1], buf);
 
         // draw memory list
         memory_list_block.render(middle_cols[1], buf);

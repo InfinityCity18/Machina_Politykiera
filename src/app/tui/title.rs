@@ -25,7 +25,7 @@ pub fn cycle_title(tx: mpsc::Sender<Event>, mut text: String) {
             .join("\n");
 
         text = m;
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(33));
         tx.send(Event::Title(text.clone())).unwrap();
     }
 }

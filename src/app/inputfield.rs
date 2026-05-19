@@ -6,14 +6,16 @@ use ratatui::{
 };
 
 pub struct InputField {
+    title: String,
     pub input: String,
     index: usize,
     pub selected: bool,
 }
 
 impl InputField {
-    pub fn new() -> InputField {
+    pub fn new(title: String) -> InputField {
         Self {
+            title: title,
             input: String::new(),
             index: 0,
             selected: false,
@@ -68,7 +70,9 @@ impl Widget for &mut InputField {
     where
         Self: Sized,
     {
-        let mut block = Block::default().title(" Value ").borders(Borders::ALL);
+        let mut block = Block::default()
+            .title(self.title.clone())
+            .borders(Borders::ALL);
 
         let p = if self.selected {
             block = block

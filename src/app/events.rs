@@ -81,7 +81,7 @@ impl App<'_> {
         match key_event.code {
             KeyCode::Up => self.process_list.widget_state.select_previous(),
             KeyCode::Down => self.process_list.widget_state.select_next(),
-            KeyCode::Char('s') => todo!(), // search
+            KeyCode::Enter => todo!(), // select
             _ => (),
         }
     }

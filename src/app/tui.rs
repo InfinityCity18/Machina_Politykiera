@@ -6,7 +6,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Layout},
     prelude::{Buffer, Rect},
     style::{Color, Style},
-    widgets::{Block, Widget},
+    widgets::{Block, Widget, Wrap},
 };
 pub mod title;
 
@@ -21,67 +21,91 @@ impl Widget for &mut App<'_> {
             ])
             .split(area);
 
-        let left_rows = Layout::default()
+        let left_cols = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)])
             .split(columns[0]);
 
-        let middle_rows = Layout::default()
+        let middle_cols = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Ratio(2, 5), Constraint::Ratio(3, 5)])
             .split(columns[1]);
 
-        let right_rows = Layout::default()
+        let right_cols = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Ratio(2, 5), Constraint::Ratio(3, 5)])
             .split(columns[2]);
 
-        let block1 = Block::default().title(" Title ").borders(Borders::ALL);
-        let block2 = Block::default().title(" User Guide ").borders(Borders::ALL);
-        let mut block3 = Block::default().title(" Processes ").borders(Borders::ALL);
-
-        let mut block4 = Block::default()
+        let title_block = Block::default().title(" Title ").borders(Borders::ALL);
+        let guide_block = Block::default().title(" User Guide ").borders(Borders::ALL);
+        let mut process_list_block = Block::default().title(" Processes ").borders(Borders::ALL);
+        let mut memory_list_block = Block::default()
             .title(" Scanned memory ")
             .borders(Borders::ALL);
-
-        let mut block5 = Block::default()
+        let scan_options_block = Block::default()
             .title(" Scan options ")
             .borders(Borders::ALL);
 
-        let mut block6 = Block::default()
+        (&scan_options_block).render(right_cols[0], buf);
+        let mut scan_options_column = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(3),
+                Constraint::Length(3),
+                Constraint::Min(0),
+            ])
+            .split(scan_options_block.inner(right_cols[0]));
+
+        let mut pinned_memory_block = Block::default()
             .title(" Pinned memory ")
             .borders(Borders::ALL);
 
-        let text = self.title_text.clone();
-
-        let p = Paragraph::new(text)
-            .block(block1)
-            .alignment(Alignment::Center);
-
         match self.focus_window {
             Focus::MemoryListWindow => {
-                block4 = block4.border_style(Style::default().fg(Color::Green));
+                memory_list_block =
+                    memory_list_block.border_style(Style::default().fg(Color::Green));
             }
             Focus::ProcessListWindow => {
-                block3 = block3.border_style(Style::default().fg(Color::Green));
+                process_list_block =
+                    process_list_block.border_style(Style::default().fg(Color::Green));
             }
             Focus::PinnedMemoryWindow => {
-                block6 = block6.border_style(Style::default().fg(Color::Green));
+                pinned_memory_block =
+                    pinned_memory_block.border_style(Style::default().fg(Color::Green));
             }
             _ => {}
         };
 
-        p.render(left_rows[0], buf);
-        block2.render(left_rows[1], buf);
-        block4.render(middle_rows[1], buf);
-        //block5.render(right_rows[0], buf);
-        block6.render(right_rows[1], buf);
+        // draw title
+        let text = self.title_text.clone();
+        let title_window = Paragraph::new(text)
+            .block(title_block)
+            .alignment(Alignment::Center);
+        title_window.render(left_cols[0], buf);
 
-        if matches!(self.focus_window, Focus::ProcessListWindow) {}
+        // draw guide
+        guide_block.render(left_cols[1], buf);
 
-        (&block3).render(middle_rows[0], buf);
+        // draw process list
+        (&process_list_block).render(middle_cols[0], buf);
+        self.process_list
+            .render(process_list_block.inner(middle_cols[0]), buf);
 
-        self.process_list.render(block3.inner(middle_rows[0]), buf);
-        self.input_field.render(right_rows[0], buf);
+        // draw scan options
+        self.input_field.render(scan_options_column[0], buf);
+
+        let type_selection =
+            Paragraph::new("Type select goes here").block(Block::default().borders(Borders::ALL));
+        type_selection.render(scan_options_column[1], buf);
+
+        let scan_info_text = Paragraph::new(
+            "Type the [V]alue above and press enter to search for the associated [T]ype.",
+        )
+        .wrap(Wrap { trim: true });
+        scan_info_text.render(scan_options_column[2], buf);
+
+        // draw memory list
+        memory_list_block.render(middle_cols[1], buf);
+        pinned_memory_block.render(right_cols[1], buf);
     }
 }

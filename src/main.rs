@@ -4,6 +4,8 @@ use crate::app::tui::title;
 
 mod app;
 
+const UPDATE_PERIOD_SEC: u64 = 100;
+
 fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
     let tx_input_events = event_tx.clone();
     thread::spawn(move || {
@@ -17,7 +19,7 @@ fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
 
     let tx_process_update = event_tx.clone();
     thread::spawn(move || {
-        app::processlist::update_processes_periodically(tx_process_update, 1);
+        app::processlist::update_processes_periodically(tx_process_update, UPDATE_PERIOD_SEC);
     });
 }
 fn main() -> io::Result<()> {

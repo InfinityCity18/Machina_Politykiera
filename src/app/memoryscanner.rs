@@ -33,9 +33,10 @@ impl MemoryScanner {
             if file.seek(std::io::SeekFrom::Start(addr.address as u64)).is_err() {
                 continue;
             }
-            file.read_to_end(&mut buf);
+            file.read_to_end(&mut buf)?;
             v.push((addr.address, buf));
         }
+        detach(Pid::from_raw(process.pid()), None)?;
         Ok(v)
     }
 

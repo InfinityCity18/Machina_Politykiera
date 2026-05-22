@@ -17,6 +17,7 @@ impl ScanSettings {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub enum ScanValue {
     Byte(u8),
     Word(u16),
@@ -27,7 +28,7 @@ pub enum ScanValue {
     String(String),
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ScanValueType {
     Byte,
     Word,
@@ -69,6 +70,26 @@ impl ScanValueType {
 }
 
 impl ScanValue {
+    pub fn from_user_input(input: String, typ: ScanValueType) -> Result<ScanValue, Box<dyn Error>> {
+        use ScanValue::*;
+        let parsed = match typ {
+            ScanValueType::Byte => Byte(input.parse()?),
+            ScanValueType::Word => Word(input.parse()?),
+            ScanValueType::DWord => DWord(input.parse()?),
+            ScanValueType::QWord => QWord(input.parse()?),
+            ScanValueType::Float => Float(input.parse()?),
+            ScanValueType::Double => Double(input.parse()?),
+            ScanValueType::String(l) => {
+                if input.len() > l {
+                    return Err("Inputted string is too long".into())
+                } else {
+                    String(input)
+                }
+            }
+        };
+        Ok(parsed)
+    }
+
     pub fn convert_from_bytes(bytes: &[u8], val_type: ScanValueType) -> Result<ScanValue, Box<dyn Error>> {
         use ScanValueType::*;
         let returnv = match val_type {

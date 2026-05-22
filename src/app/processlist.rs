@@ -53,8 +53,8 @@ impl ProcessList<'_> {
                     })
                     .collect();
             }
-            Err(err) => {
-                unimplemented!("Updating list of processes error handling is unimplemented")
+            Err(_) => {
+                // nothing ever happens
             }
         }
     }

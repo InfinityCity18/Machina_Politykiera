@@ -1,6 +1,6 @@
-use std::{error::Error, fs::File, io::{Read, Seek}, rc::Rc};
+use std::{error::Error, fs::File, io::{Read, Seek, Write}, rc::Rc};
 
-use nix::{sys::ptrace::attach, unistd::Pid};
+use nix::{sys::ptrace::{attach, detach}, unistd::Pid};
 use procfs::process::Process;
 use crate::app::scansettings::{ScanValue, ScanValueType};
 
@@ -34,6 +34,17 @@ impl MemoryAddress {
         file.seek(std::io::SeekFrom::Start(self.address as u64))?;
         let mut bytes = Vec::with_capacity(self.val_type.len());
         file.read_to_end(&mut bytes)?;
+        detach(Pid::from_raw(self.process.pid()), None)?;
         Ok(ScanValue::convert_from_bytes(&bytes, self.val_type)?)
+    }
+
+    pub fn set_value(&self, val_type: ScanValue) -> Result<(), Box<dyn Error>> {
+        assert_eq!(self.val_type, ScanValueType::from(&val_type));
+        attach(Pid::from_raw(self.process.pid()))?;
+        let mut file = File::open(format!("/proc/{}/mem", self.process.pid()))?;
+        file.seek(std::io::SeekFrom::Start(self.address as u64))?;
+        file.write(&val_type.as_bytes())?;
+        detach(Pid::from_raw(self.process.pid()), None)?;
+        Ok(())
     }
 }

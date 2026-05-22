@@ -1,6 +1,5 @@
 use ratatui::{DefaultTerminal, Frame};
 use std::{io, sync::mpsc};
-use text_to_ascii_art::to_art;
 
 pub mod events;
 mod inputfield;
@@ -15,7 +14,6 @@ use events::Focus;
 
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
-use crate::app::tui::title;
 
 use inputfield::InputField;
 

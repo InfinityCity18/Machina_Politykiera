@@ -1,7 +1,7 @@
 use std::{error::Error, fs::File, io::{BufReader, Read, Seek}, rc::Rc};
 
 use nix::{
-    sys::ptrace::{attach, detach},
+    sys::{ptrace::{attach, detach}, wait::waitpid},
     unistd::Pid,
 };
 use procfs::process::{MMapPath, Process};
@@ -28,6 +28,7 @@ impl MemoryScanner {
         // its like this cuz of assumption of only one process being scanned
         let process = &self.matching_addresses.get(0).ok_or("No matching addresses")?.process; 
         attach(Pid::from_raw(process.pid()))?;
+        waitpid(Pid::from_raw(process.pid()), None)?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
         let mut v = Vec::new();
         for addr in &self.matching_addresses {
@@ -36,7 +37,6 @@ impl MemoryScanner {
                 continue;
             }
             file.by_ref().take(addr.val_type.len() as u64).read_to_end(&mut buf)?;
-            println!("BUF {:?} goi=wono {:?} w {:?}", buf, addr.val_type.len(), addr.val_type);
             v.push((addr.clone(), buf));
         }
         drop(file);
@@ -97,6 +97,7 @@ impl MemoryScanner {
     pub fn first_scan(&mut self, scan_settings: ScanSettings) -> Result<(), Box<dyn Error>> {
         let process = scan_settings.process();
         attach(Pid::from_raw(process.pid()))?;
+        waitpid(Pid::from_raw(process.pid()), None)?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
         let mut addresses = Vec::new();
 
@@ -122,12 +123,9 @@ impl MemoryScanner {
             return Err("Processes not matching".into());
         }
         attach(Pid::from_raw(process.pid()))?;
+        waitpid(Pid::from_raw(process.pid()), None)?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
 
-        for addr in &self.matching_addresses {
-            file.seek(std::io::SeekFrom::Start(addr.address.try_into()?))?;
-
-        }
         self.matching_addresses.retain(|addr| {
             if file.seek(std::io::SeekFrom::Start(addr.address as u64)).is_err() {
                 return false
@@ -145,11 +143,13 @@ impl MemoryScanner {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Seek;
+    use std::fs::remove_file;
+use std::io::Seek;
 use std::io::Write;
 use std::rc::Rc;
 use std::time::Duration;
 
+use nix::libc::remove;
 use procfs::process::Process;
 
 use crate::app::scansettings::ScanValue;
@@ -187,10 +187,11 @@ use super::MemoryScanner;
     #[test]
     fn test_kmp() -> Result<(), Box<dyn std::error::Error>>{
         let mut file = std::fs::File::options().create(true).read(true).write(true).open("hello.txt")?;
-        file.write(b"hello world")?;
+        file.write(b"wdn ajubwdjawjd kabhello world dwa iodhwid ahwih")?;
         file.seek(std::io::SeekFrom::Start(0))?;
         let addresses = MemoryScanner::kmp(&file, &ScanValue::String("hello world".to_string()), 11, Rc::new(Process::myself()?), 0)?;
-        assert_eq!(addresses[0].address, 0);
+        remove_file("hello.txt")?;
+        assert_eq!(addresses[0].address, 19);
         Ok(())
     }
 }

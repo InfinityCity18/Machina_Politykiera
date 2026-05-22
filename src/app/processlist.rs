@@ -1,4 +1,4 @@
-use crate::app::Event;
+use crate::app::{App, Event};
 use procfs::process::{self, Process};
 use ratatui::{
     buffer::Buffer,
@@ -67,9 +67,9 @@ impl ProcessList<'_> {
     }
 
     /// Returns the currently selected process
-    pub fn get_selected(&self) -> Option<&Process> {
+    pub fn get_selected(&self) -> Option<Rc<Process>> {
         match self.widget_state.selected() {
-            Some(i) => Some(&self.processes[i]),
+            Some(i) => Some(self.processes[i].clone()),
             None => None,
         }
     }

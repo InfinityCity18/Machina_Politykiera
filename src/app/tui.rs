@@ -55,6 +55,7 @@ impl Widget for &mut App<'_> {
                 Constraint::Length(3),
                 Constraint::Length(3),
                 Constraint::Length(3),
+                Constraint::Length(2),
                 Constraint::Fill(1),
             ])
             .split(scan_options_block.inner(right_cols[0]));
@@ -62,7 +63,7 @@ impl Widget for &mut App<'_> {
         let scan_info_row = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Fill(1), Constraint::Fill(1)])
-            .split(scan_options_column[3]);
+            .split(scan_options_column[4]);
 
         let mut memory_editor_block = Block::default()
             .title(" Memory [E]ditor ")
@@ -100,15 +101,31 @@ impl Widget for &mut App<'_> {
             .render(process_list_block.inner(middle_cols[0]), buf);
 
         // draw scan options
-        self.scan_value_field.render(scan_options_column[0], buf);
+        let selected_process_text = match self.selected_process.clone() {
+            Some(proc) => match proc.stat() {
+                Ok(stat) => format!("{:<8} {}", stat.pid, stat.comm),
+                Err(_err) => "Error - couldn't parse name or pid".to_string(),
+            },
+            None => "None".to_string(),
+        };
 
-        self.scan_type_selector.render(scan_options_column[1], buf);
+        Paragraph::new(selected_process_text)
+            .block(
+                Block::default()
+                    .title(" Selected Process ")
+                    .borders(Borders::all()),
+            )
+            .render(scan_options_column[0], buf);
+
+        self.scan_value_field.render(scan_options_column[1], buf);
+
+        self.scan_type_selector.render(scan_options_column[2], buf);
 
         let scan_info_text =
             Paragraph::new("Type above a [V]alue of the selected [T]ype then perform:")
                 .wrap(Wrap { trim: true });
 
-        scan_info_text.render(scan_options_column[2], buf);
+        scan_info_text.render(scan_options_column[3], buf);
         let first_scan_info =
             Paragraph::new("[F]irst scan to find all memory adresses with matching values")
                 .block(Block::default().borders(Borders::all()))

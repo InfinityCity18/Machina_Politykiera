@@ -1,6 +1,6 @@
 use procfs::process::Process;
 use ratatui::{DefaultTerminal, Frame};
-use std::{io, sync::mpsc};
+use std::{io, rc::Rc, sync::mpsc};
 
 pub mod events;
 mod inputfield;
@@ -26,7 +26,7 @@ pub struct App<'a> {
     pub exit: bool,
     pub title_text: String,
 
-    selected_process: Option<Process>,
+    selected_process: Option<Rc<Process>>,
     memory_scanner: MemoryScanner<'a>,
     memory_editor: MemoryEditor<'a>,
     process_list: ProcessList<'a>,
@@ -66,6 +66,17 @@ impl App<'_> {
             terminal.draw(|frame| self.draw(frame))?;
         }
         Ok(())
+    }
+
+    pub fn change_process_to_selected(&mut self) {
+        match self.process_list.get_selected() {
+            None => (),
+            Some(proc) => {
+                if proc.is_alive() {
+                    self.selected_process = Some(proc)
+                }
+            }
+        }
     }
 
     fn draw(&mut self, frame: &mut Frame) {

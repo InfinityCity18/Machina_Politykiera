@@ -36,7 +36,7 @@ impl MemoryScanner<'_> {
         }
     }
 
-    pub fn addresses_and_values(&self) -> Result<Vec<(usize, Vec<u8>)>, Box<dyn Error>> {
+    fn addresses_and_values(&self) -> Result<Vec<(usize, Vec<u8>)>, Box<dyn Error>> {
         let process = &self.matching_addresses[0].process; // bad handling lol
         attach(Pid::from_raw(process.pid()))?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;

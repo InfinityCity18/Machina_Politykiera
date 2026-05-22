@@ -67,6 +67,19 @@ impl ScanValueType {
             String(x) => *x,
         }
     }
+
+    pub fn to_string(&self) -> String {
+        use ScanValueType::*;
+        match self {
+            Byte => "Byte".to_string(),
+            Word => "Word".to_string(),
+            DWord => "DWord".to_string(),
+            QWord => "QWord".to_string(),
+            Float => "Float".to_string(),
+            Double => "Double".to_string(),
+            String(x) => format!("String({})", x),
+        }
+    }
 }
 
 impl ScanValue {
@@ -164,6 +177,18 @@ impl ScanValue {
             Double(n) => Box::new(n.to_be_bytes()),
 
             String(s) => Box::from(s.as_bytes()),
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            ScanValue::Byte(v) => v.to_string(),
+            ScanValue::Word(v) => v.to_string(),
+            ScanValue::DWord(v) => v.to_string(),
+            ScanValue::QWord(v) => v.to_string(),
+            ScanValue::Float(v) => v.to_string(),
+            ScanValue::Double(v) => v.to_string(),
+            ScanValue::String(v) => v.clone(),
         }
     }
 

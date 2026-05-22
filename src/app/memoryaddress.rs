@@ -34,11 +34,7 @@ impl MemoryAddress {
         if file.read(&mut buf)? == pat.len() {
             return Err(String::from("Read count didn't match pattern length").into());
         }
-        if buf == pat {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
+        Ok(buf == pat)
     }
 
     pub fn read_value(&self) -> Result<ScanValue, Box<dyn Error>> {
@@ -59,6 +55,20 @@ impl MemoryAddress {
         file.write(&val_type.as_bytes())?;
         detach(Pid::from_raw(self.process.pid()), None)?;
         Ok(())
+    }
+
+    pub fn to_string(&self) -> String {
+        let pid = match self.process.stat() {
+            Ok(stat) => format!("{:<8} {}", stat.pid, stat.comm),
+            Err(_err) => "Error - couldn't parse name or pid".to_string(),
+        };
+
+        format!(
+            "{:<12}{:.12}{:.12}",
+            pid,
+            self.address,
+            self.val_type.to_string()
+        )
     }
 }
 

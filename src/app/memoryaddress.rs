@@ -4,6 +4,7 @@ use nix::{sys::ptrace::{attach, detach}, unistd::Pid};
 use procfs::process::Process;
 use crate::app::scansettings::{ScanValue, ScanValueType};
 
+#[derive(Clone, Debug)]
 pub struct MemoryAddress {
     pub process: Rc<Process>,
     pub address: usize,

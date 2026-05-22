@@ -49,9 +49,10 @@ impl MemoryScanner<'_> {
             {
                 continue;
             }
-            file.read_to_end(&mut buf);
+            file.read_to_end(&mut buf)?;
             v.push((addr.address, buf));
         }
+        detach(Pid::from_raw(process.pid()), None)?;
         Ok(v)
     }
 

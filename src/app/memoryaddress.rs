@@ -1,8 +1,8 @@
 use nix::{
     sys::ptrace::{attach, detach},
+    sys::wait::waitpid,
     unistd::Pid,
 };
-use procfs::process::Process;
 use std::{
     error::Error,
     fs::File,
@@ -12,6 +12,7 @@ use std::{
 
 use crate::app::scansettings::ScanValue;
 use crate::app::scansettings::ScanValueType;
+use procfs::process::Process;
 #[derive(Clone, Debug)]
 pub struct MemoryAddress {
     pub process: Rc<Process>,
@@ -39,6 +40,7 @@ impl MemoryAddress {
 
     pub fn read_value(&self) -> Result<ScanValue, Box<dyn Error>> {
         attach(Pid::from_raw(self.process.pid()))?;
+        waitpid(Pid::from_raw(self.process.pid()), None)?;
         let mut file = File::open(format!("/proc/{}/mem", self.process.pid()))?;
         file.seek(std::io::SeekFrom::Start(self.address as u64))?;
         let mut bytes = Vec::with_capacity(self.val_type.len());
@@ -52,6 +54,7 @@ impl MemoryAddress {
     pub fn set_value(&self, val_type: ScanValue) -> Result<(), Box<dyn Error>> {
         assert_eq!(self.val_type, ScanValueType::from(&val_type));
         attach(Pid::from_raw(self.process.pid()))?;
+        waitpid(Pid::from_raw(self.process.pid()), None)?;
         let mut file = File::open(format!("/proc/{}/mem", self.process.pid()))?;
         file.seek(std::io::SeekFrom::Start(self.address as u64))?;
         file.write(&val_type.as_bytes())?;

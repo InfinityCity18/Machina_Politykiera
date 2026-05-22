@@ -1,0 +1,37 @@
+warning: unused imports: `Block`, `Borders`, and `Paragraph`
+ --> src/app/memoryeditor.rs:4:5
+  |
+4 |     Block, Borders, List, ListItem, ListState, Paragraph, StatefulWidget, Widget,
+  |     ^^^^^  ^^^^^^^                             ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `scansettings::ScanSettings`
+ --> src/app/memoryeditor.rs:8:59
+  |
+8 |     inputfield::InputField, memoryaddress::MemoryAddress, scansettings::ScanSettings,
+  |                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ScanValueType`
+  --> src/app/memoryscanner.rs:16:45
+   |
+16 |     scansettings::{ScanSettings, ScanValue, ScanValueType},
+   |                                             ^^^^^^^^^^^^^
+
+warning: unused import: `crossterm::event::KeyCode`
+ --> src/app/typeselector.rs:1:5
+  |
+1 | use crossterm::event::KeyCode;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `style::Color`, `style::Modifier`, `style::Style`, `text::Line`, and `text::Span`
+ --> src/app/typeselector.rs:5:5
+  |
+5 |     style::Color, style::Modifier, style::Style, text::Line, text::Span, widgets::Block,
+  |     ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^^^
+
+warning: `machina_politykiera` (bin "machina_politykiera") generated 5 warnings (run `cargo fix --bin "machina_politykiera" -p machina_politykiera` to apply 5 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running `target/debug/machina_politykiera`
+Process error
+Process error

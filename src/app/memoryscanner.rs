@@ -11,7 +11,10 @@ use std::{
     rc::Rc,
 };
 
-use crate::app::{memoryaddress::MemoryAddress, scansettings::{ScanSettings, ScanValue}};
+use crate::app::{
+    memoryaddress::MemoryAddress,
+    scansettings::{ScanSettings, ScanValue},
+};
 
 // we need to hold the memory values for displaying ehhhh
 // truly
@@ -39,16 +42,11 @@ impl MemoryScanner<'_> {
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
         let mut v = Vec::new();
         for addr in &self.matching_addresses {
-<<<<<<< HEAD
-            let mut buf = Vec::with_capacity(addr.len);
+            let mut buf = Vec::with_capacity(addr.val_type.len());
             if file
-                .seek(std::io::SeekFrom::Start(addr.offset as u64))
+                .seek(std::io::SeekFrom::Start(addr.address as u64))
                 .is_err()
             {
-=======
-            let mut buf = Vec::with_capacity(addr.val_type.len());
-            if file.seek(std::io::SeekFrom::Start(addr.address as u64)).is_err() {
->>>>>>> processes_branch
                 continue;
             }
             file.read_to_end(&mut buf);
@@ -57,20 +55,15 @@ impl MemoryScanner<'_> {
         Ok(v)
     }
 
-<<<<<<< HEAD
     // Returns a list of addresses of process memory where value matches pattern
     fn kmp(
         file: &mut File,
-        pattern: &[u8],
-        len: usize,
+        val: &ScanValue,
+        len_of_memory: usize,
         process: Rc<Process>,
         start_offset: usize,
     ) -> Result<Vec<MemoryAddress>, Box<dyn Error>> {
-=======
-    // Returns a list of addresses of process memory where value matches pattern 
-    fn kmp(file: &mut File, val: &ScanValue, len_of_memory: usize, process: Rc<Process>, start_offset: usize) -> Result<Vec<MemoryAddress>,Box<dyn Error>> {
         let pattern = val.as_bytes();
->>>>>>> processes_branch
         fn prefix_function(pat: &[u8]) -> Vec<usize> {
             let n = pat.len();
             let mut pi: Vec<usize> = Vec::new();
@@ -102,15 +95,11 @@ impl MemoryScanner<'_> {
                 bufread.read(std::slice::from_mut(&mut chr))?;
             }
             if j == pattern.len() {
-<<<<<<< HEAD
                 matching_addresses.push(MemoryAddress::new(
                     process.clone(),
-                    pattern.len(),
                     start_offset + i - j,
+                    (val).into(),
                 ));
-=======
-                matching_addresses.push( MemoryAddress::new(process.clone(), start_offset + i - j,  (val).into()));
->>>>>>> processes_branch
                 j = lps[j - 1];
             } else if i < len_of_memory && pattern[j] != chr {
                 if j != 0 {
@@ -134,17 +123,14 @@ impl MemoryScanner<'_> {
             if map.pathname == MMapPath::Heap || map.pathname == MMapPath::Stack {
                 file.seek(std::io::SeekFrom::Start(map.address.0))?;
                 let len = (map.address.1 - map.address.0) as usize;
-<<<<<<< HEAD
+
                 if let Ok(mut v) = MemoryScanner::kmp(
                     &mut file,
-                    &scan_settings.value().as_bytes(),
+                    scan_settings.value(),
                     len,
                     process.clone(),
                     map.address.0 as usize,
                 ) {
-=======
-                if let Ok(mut v) = MemoryScanner::kmp(&mut file, scan_settings.value(), len, process.clone(), map.address.0 as usize) {
->>>>>>> processes_branch
                     addresses.append(&mut v);
                 }
                 // ignoring err,  want to continue seeking pattern in other maps
@@ -161,23 +147,14 @@ impl MemoryScanner<'_> {
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
 
         for addr in &self.matching_addresses {
-<<<<<<< HEAD
-            file.seek(std::io::SeekFrom::Start(addr.offset.try_into()?))?;
+            file.seek(std::io::SeekFrom::Start(addr.address.try_into()?))?;
         }
         self.matching_addresses.retain(|addr| {
             if file
-                .seek(std::io::SeekFrom::Start(addr.offset as u64))
+                .seek(std::io::SeekFrom::Start(addr.address as u64))
                 .is_err()
             {
                 return false;
-=======
-            file.seek(std::io::SeekFrom::Start(addr.address.try_into()?))?;
-
-        }
-        self.matching_addresses.retain(|addr| {
-            if file.seek(std::io::SeekFrom::Start(addr.address as u64)).is_err() {
-                return false
->>>>>>> processes_branch
             }
             let mut buf = Vec::with_capacity(addr.val_type.len());
             // Decided to compare even if it didnt read

@@ -49,6 +49,6 @@ impl MemoryAddress {
 
 impl PartialEq for MemoryAddress {
     fn eq(&self, other: &Self) -> bool {
-        self.offset == other.offset && self.process.pid() == other.process.pid()
+        self.address == other.address && self.process.pid() == other.process.pid()
     }
 }

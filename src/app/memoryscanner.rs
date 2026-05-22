@@ -85,7 +85,7 @@ impl MemoryScanner<'_> {
 
     // Returns a list of addresses of process memory where value matches pattern
     fn kmp(
-        file: &mut File,
+        file: &File,
         val: &ScanValue,
         len_of_memory: usize,
         process: Rc<Process>,
@@ -94,7 +94,7 @@ impl MemoryScanner<'_> {
         let pattern = val.as_bytes();
         fn prefix_function(pat: &[u8]) -> Vec<usize> {
             let n = pat.len();
-            let mut pi: Vec<usize> = Vec::new();
+            let mut pi: Vec<usize> = vec![0; n];
             for i in 1..n {
                 let mut j = pi[i - 1];
                 while j > 0 && pat[i] != pat[j] {
@@ -118,10 +118,18 @@ impl MemoryScanner<'_> {
 
         while i < len_of_memory {
             if pattern[j] == chr {
-                i += 1;
                 j += 1;
+                i += 1;
+                if j < pattern.len() {
+                    bufread.read(std::slice::from_mut(&mut chr))?;
+                }
+            } else if j != 0 {
+                j = lps[j - 1];
+            } else {
+                i += 1;
                 bufread.read(std::slice::from_mut(&mut chr))?;
             }
+
             if j == pattern.len() {
                 matching_addresses.push(MemoryAddress::new(
                     process.clone(),
@@ -129,13 +137,7 @@ impl MemoryScanner<'_> {
                     (val).into(),
                 ));
                 j = lps[j - 1];
-            } else if i < len_of_memory && pattern[j] != chr {
-                if j != 0 {
-                    j = lps[j - 1];
-                } else {
-                    i += 1;
-                    bufread.read(std::slice::from_mut(&mut chr))?;
-                }
+                bufread.read(std::slice::from_mut(&mut chr))?;
             }
         }
         return Ok(matching_addresses);
@@ -196,6 +198,8 @@ impl MemoryScanner<'_> {
 
 #[cfg(test)]
 mod tests {
+
+    use std::io::Write;
     use std::rc::Rc;
     use std::time::Duration;
 
@@ -230,7 +234,22 @@ mod tests {
         ms.first_scan(sett)?;
         let results = ms.addresses_and_values()?;
         let found_tuple = results.get(0).ok_or("Nothing at index 0")?;
-        assert_eq!(searched_string.as_ptr(), found_tuple.0 as *const u8);
+        assert_eq!(searched_string.as_ptr(), found_tuple.0.address as *const u8);
+        Ok(())
+    }
+
+    #[test]
+    fn test_kmp() -> Result<(), Box<dyn std::error::Error>> {
+        let mut file = std::fs::File::create("hello.txt")?;
+        file.write(b"hello world")?;
+        let addresses = MemoryScanner::kmp(
+            &file,
+            &ScanValue::String("hello world".to_string()),
+            11,
+            Rc::new(Process::myself()?),
+            0,
+        )?;
+        println!("{:?}", addresses);
         Ok(())
     }
 }

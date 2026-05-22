@@ -12,7 +12,7 @@ use std::{
 
 use crate::app::scansettings::ScanValue;
 use crate::app::scansettings::ScanValueType;
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MemoryAddress {
     pub process: Rc<Process>,
     pub address: usize,

@@ -13,6 +13,7 @@ use crate::app::{memoryaddress::MemoryAddress, scansettings::{ScanSettings, Scan
 
 pub struct MemoryScanner {
     matching_addresses: Vec<MemoryAddress>,
+    
 }
 
 impl MemoryScanner {
@@ -24,7 +25,8 @@ impl MemoryScanner {
     }
 
     pub fn addresses_and_values(&self) -> Result<Vec<(usize, Vec<u8>)>, Box<dyn Error>> {
-        let process = &self.matching_addresses[0].process; // bad handling lol
+        // its like this cuz of assumption of only one process being scanned
+        let process = &self.matching_addresses.get(0).ok_or("No matching addresses")?.process; 
         attach(Pid::from_raw(process.pid()))?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
         let mut v = Vec::new();
@@ -128,6 +130,45 @@ impl MemoryScanner {
             scan_settings.value().as_bytes() == buf.as_slice().into()
         });
         detach(Pid::from_raw(process.pid()), None)?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::rc::Rc;
+use std::time::Duration;
+
+use procfs::process::Process;
+
+use crate::app::scansettings::ScanValue;
+
+use super::MemoryScanner;
+    use super::ScanSettings;
+    #[test]
+    fn test_memory_scanner() -> Result<(), Box<dyn std::error::Error>> {
+
+        let mut child_pid= 0;
+        match unsafe{nix::unistd::fork()} {
+            Ok(nix::unistd::ForkResult::Parent { child, .. }) => {
+            child_pid = child.as_raw();
+        }
+            Ok(nix::unistd::ForkResult::Child) => {
+            let hello = "hello world";
+            std::thread::sleep(Duration::from_secs(20));
+            unsafe { nix::libc::_exit(0) };
+        }
+            Err(_) => println!("Fork failed"),
+        }
+
+        let searched_string = "hello world";
+        let mut ms = MemoryScanner::new();
+        let self_proc = Process::new(child_pid)?;
+        let sett = ScanSettings::new(Rc::new(self_proc),ScanValue::String("hello world".to_string()));
+        ms.first_scan(sett)?;
+        let results = ms.addresses_and_values()?;
+        let found_tuple = results.get(0).ok_or("Nothing at index 0")?;
+        assert_eq!(searched_string.as_ptr(), found_tuple.0 as *const u8);
         Ok(())
     }
 }

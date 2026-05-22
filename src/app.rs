@@ -81,7 +81,7 @@ impl App<'_> {
         }
     }
 
-    pub fn perform_first_scan(&mut self) {
+    pub fn perform_scan(&mut self, first: bool) {
         // error handling is to be improved. Probably by logging
         if !match self.selected_process.clone() {
             Some(proc) => proc.is_alive(),
@@ -104,7 +104,11 @@ impl App<'_> {
 
         let settings = ScanSettings::new(self.selected_process.clone().unwrap(), value.unwrap());
 
-        match self.memory_scanner.first_scan(settings) {
+        match if first {
+            self.memory_scanner.first_scan(settings)
+        } else {
+            self.memory_scanner.next_scan(settings)
+        } {
             Ok(()) => (),
             Err(_) => (), // should be handled probs, or logged
         };

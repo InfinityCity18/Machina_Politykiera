@@ -209,6 +209,9 @@ impl MemoryScanner<'_> {
         detach(Pid::from_raw(process.pid()), None)?;
         Ok(())
     }
+    pub fn clear(&mut self) {
+        self.matching_addresses = vec![];
+    }
 }
 impl Widget for &mut MemoryScanner<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {

@@ -56,8 +56,8 @@ impl App<'_> {
                 (KeyCode::Char('p'), _) => self.set_focus(ProcessListWindow),
                 (KeyCode::Char('m'), _) => self.set_focus(MemoryListWindow),
                 (KeyCode::Char('t'), _) => self.scan_type_selector.cycle_type(),
-                (KeyCode::Char('f'), _) => self.perform_first_scan(), // first scan
-                (KeyCode::Char('n'), _) => todo!(),
+                (KeyCode::Char('f'), _) => self.perform_scan(true), // first scan
+                (KeyCode::Char('n'), _) => self.perform_scan(true), // next scan
                 (_, ProcessListWindow) => self.handle_process_list_key_event(key_event),
                 _ => (),
             }

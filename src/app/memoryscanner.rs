@@ -178,6 +178,16 @@ impl MemoryScanner<'_> {
 
     pub fn next_scan(&mut self, scan_settings: ScanSettings) -> Result<(), Box<dyn Error>> {
         let process = scan_settings.process();
+        if process.pid()
+            != self
+                .matching_addresses
+                .get(0)
+                .ok_or("No addresses in list")?
+                .process
+                .pid()
+        {
+            return Err("Processes not matching".into());
+        }
         attach(Pid::from_raw(process.pid()))?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
 
@@ -251,7 +261,11 @@ mod tests {
 
     #[test]
     fn test_kmp() -> Result<(), Box<dyn std::error::Error>> {
-        let mut file = std::fs::File::create("hello.txt")?;
+        let mut file = std::fs::File::options()
+            .create(true)
+            .read(true)
+            .write(true)
+            .open("hello.txt")?;
         file.write(b"hello world")?;
         let addresses = MemoryScanner::kmp(
             &file,

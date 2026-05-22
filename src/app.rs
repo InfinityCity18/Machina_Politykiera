@@ -6,6 +6,7 @@ use std::{io, sync::mpsc};
 pub mod events;
 mod inputfield;
 mod memoryaddress;
+mod memoryeditor;
 mod memoryscanner;
 pub mod processlist;
 mod scansettings;
@@ -14,6 +15,7 @@ pub mod tui;
 use events::Event;
 use events::Focus;
 
+use crate::app::memoryeditor::MemoryEditor;
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
 
@@ -24,7 +26,8 @@ pub struct App<'a> {
     pub title_text: String,
 
     selected_process: Option<Process>,
-    memory_scanner: MemoryScanner,
+    memory_scanner: MemoryScanner<'a>,
+    memory_editor: MemoryEditor<'a>,
     process_list: ProcessList<'a>,
     //selected_process -> Process
     //list_of_scanned_processes -> MemoryScan <-- would get rid of
@@ -40,6 +43,7 @@ impl App<'_> {
             title_text: String::from(""), // this doesn't matter. Gets set by running title cycling
             selected_process: None,
             memory_scanner: MemoryScanner::new(),
+            memory_editor: MemoryEditor::new(),
             process_list: ProcessList::new(),
             focus_window: Focus::ProcessListWindow,
             input_field: InputField::new(" [V]alue ".to_string()),

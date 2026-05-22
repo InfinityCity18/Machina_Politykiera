@@ -24,7 +24,7 @@ pub enum Event {
 pub enum Focus {
     ProcessListWindow,
     MemoryListWindow,
-    PinnedMemoryWindow,
+    MemoryEditorWindow,
     ValueInputField,
 }
 
@@ -47,13 +47,13 @@ impl App<'_> {
             match (key_event.code, self.focus_window.clone()) {
                 (KeyCode::Esc, _) => self.set_focus(ProcessListWindow),
                 (_, ValueInputField) => self.input_field.handle_key_event(key_event),
-                (KeyCode::Char('v'), _) => self.set_focus(ValueInputField),
                 (KeyCode::Char('q'), _) => self.exit = true,
+                (KeyCode::Char('v'), _) => self.set_focus(ValueInputField),
+                (KeyCode::Char('e'), _) => self.set_focus(MemoryEditorWindow),
                 (KeyCode::Char('p'), _) => self.set_focus(ProcessListWindow),
                 (KeyCode::Char('m'), _) => self.set_focus(MemoryListWindow),
                 (KeyCode::Char('n'), _) => todo!(), // next scan
                 (KeyCode::Char('f'), _) => todo!(), // first scan
-                (KeyCode::Char('o'), _) => self.set_focus(PinnedMemoryWindow), // override memory
                 (_, ProcessListWindow) => self.handle_process_list_key_event(key_event),
                 _ => (),
             }

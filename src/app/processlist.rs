@@ -5,9 +5,9 @@ use ratatui::{
     layout::Rect,
     widgets::{List, ListItem, ListState, StatefulWidget, Widget},
 };
-use std::{rc::Rc, sync::mpsc};
 use std::thread;
 use std::time::Duration;
+use std::{rc::Rc, sync::mpsc};
 
 /// A struct for convenient holding of processes list
 pub struct ProcessList<'a> {
@@ -40,7 +40,9 @@ impl ProcessList<'_> {
     pub fn update(&mut self) {
         match process::all_processes() {
             Ok(proc_it) => {
-                self.processes = proc_it.filter_map(|res| res.ok().map(|p| Rc::new(p))).collect();
+                self.processes = proc_it
+                    .filter_map(|res| res.ok().map(|p| Rc::new(p)))
+                    .collect();
                 self.list_items = self
                     .processes
                     .iter()

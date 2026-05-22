@@ -1,25 +1,35 @@
-use std::{error::Error, fs::File, io::{BufReader, Read, Seek}, rc::Rc};
-
 use nix::{
     sys::ptrace::{attach, detach},
     unistd::Pid,
 };
 use procfs::process::{MMapPath, Process};
+use ratatui::widgets::{ListItem, ListState};
+use std::{
+    error::Error,
+    fs::File,
+    io::{BufReader, Read, Seek},
+    rc::Rc,
+};
 
 use crate::app::{memoryaddress::MemoryAddress, scansettings::ScanSettings};
 
 // we need to hold the memory values for displaying ehhhh
 // truly
 
-pub struct MemoryScanner {
+pub struct MemoryScanner<'a> {
     matching_addresses: Vec<MemoryAddress>,
+
+    pub widget_state: ListState,
+    list_items: Vec<ListItem<'a>>,
 }
 
-impl MemoryScanner {
+impl MemoryScanner<'_> {
     /// Creates new instance of `MemoryScanner`
     pub fn new() -> Self {
         Self {
             matching_addresses: vec![],
+            widget_state: ListState::default(),
+            list_items: vec![],
         }
     }
 
@@ -30,7 +40,10 @@ impl MemoryScanner {
         let mut v = Vec::new();
         for addr in &self.matching_addresses {
             let mut buf = Vec::with_capacity(addr.len);
-            if file.seek(std::io::SeekFrom::Start(addr.offset as u64)).is_err() {
+            if file
+                .seek(std::io::SeekFrom::Start(addr.offset as u64))
+                .is_err()
+            {
                 continue;
             }
             file.read_to_end(&mut buf);
@@ -39,15 +52,21 @@ impl MemoryScanner {
         Ok(v)
     }
 
-    // Returns a list of addresses of process memory where value matches pattern 
-    fn kmp(file: &mut File, pattern: &[u8], len: usize, process: Rc<Process>, start_offset: usize) -> Result<Vec<MemoryAddress>,Box<dyn Error>> {
+    // Returns a list of addresses of process memory where value matches pattern
+    fn kmp(
+        file: &mut File,
+        pattern: &[u8],
+        len: usize,
+        process: Rc<Process>,
+        start_offset: usize,
+    ) -> Result<Vec<MemoryAddress>, Box<dyn Error>> {
         fn prefix_function(pat: &[u8]) -> Vec<usize> {
             let n = pat.len();
             let mut pi: Vec<usize> = Vec::new();
             for i in 1..n {
-                let mut j = pi[i-1];
+                let mut j = pi[i - 1];
                 while j > 0 && pat[i] != pat[j] {
-                    j = pi[j-1];
+                    j = pi[j - 1];
                 }
                 if pat[i] == pat[j] {
                     j += 1;
@@ -60,7 +79,7 @@ impl MemoryScanner {
         let lps = prefix_function(pattern);
         let mut i = 0;
         let mut j = 0;
-        let mut matching_addresses = Vec::new(); 
+        let mut matching_addresses = Vec::new();
         let mut chr: u8 = 0;
         let mut bufread = BufReader::new(file);
         bufread.read(std::slice::from_mut(&mut chr))?;
@@ -72,7 +91,11 @@ impl MemoryScanner {
                 bufread.read(std::slice::from_mut(&mut chr))?;
             }
             if j == pattern.len() {
-                matching_addresses.push( MemoryAddress::new(process.clone(), pattern.len(),  start_offset + i - j));
+                matching_addresses.push(MemoryAddress::new(
+                    process.clone(),
+                    pattern.len(),
+                    start_offset + i - j,
+                ));
                 j = lps[j - 1];
             } else if i < len && pattern[j] != chr {
                 if j != 0 {
@@ -96,7 +119,13 @@ impl MemoryScanner {
             if map.pathname == MMapPath::Heap || map.pathname == MMapPath::Stack {
                 file.seek(std::io::SeekFrom::Start(map.address.0))?;
                 let len = (map.address.1 - map.address.0) as usize;
-                if let Ok(mut v) = MemoryScanner::kmp(&mut file, &scan_settings.value().as_bytes(), len, process.clone(), map.address.0 as usize) {
+                if let Ok(mut v) = MemoryScanner::kmp(
+                    &mut file,
+                    &scan_settings.value().as_bytes(),
+                    len,
+                    process.clone(),
+                    map.address.0 as usize,
+                ) {
                     addresses.append(&mut v);
                 }
                 // ignoring err,  want to continue seeking pattern in other maps
@@ -114,11 +143,13 @@ impl MemoryScanner {
 
         for addr in &self.matching_addresses {
             file.seek(std::io::SeekFrom::Start(addr.offset.try_into()?))?;
-
         }
         self.matching_addresses.retain(|addr| {
-            if file.seek(std::io::SeekFrom::Start(addr.offset as u64)).is_err() {
-                return false
+            if file
+                .seek(std::io::SeekFrom::Start(addr.offset as u64))
+                .is_err()
+            {
+                return false;
             }
             let mut buf = Vec::with_capacity(addr.len);
             // Decided to compare even if it didnt read

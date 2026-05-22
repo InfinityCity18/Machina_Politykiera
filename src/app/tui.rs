@@ -38,12 +38,14 @@ impl Widget for &mut App<'_> {
 
         let title_block = Block::default().title(" Title ").borders(Borders::ALL);
         let guide_block = Block::default().title(" User Guide ").borders(Borders::ALL);
-        let mut process_list_block = Block::default().title(" Processes ").borders(Borders::ALL);
+        let mut process_list_block = Block::default()
+            .title(" [P]rocesses ")
+            .borders(Borders::ALL);
         let mut memory_list_block = Block::default()
-            .title(" Scanned memory ")
+            .title(" Scanned [M]emory ")
             .borders(Borders::ALL);
         let scan_options_block = Block::default()
-            .title(" Scan options ")
+            .title(" Scan Options ")
             .borders(Borders::ALL);
 
         (&scan_options_block).render(right_cols[0], buf);
@@ -62,8 +64,8 @@ impl Widget for &mut App<'_> {
             .constraints([Constraint::Fill(1), Constraint::Fill(1)])
             .split(scan_options_column[3]);
 
-        let mut pinned_memory_block = Block::default()
-            .title(" Pinned memory ")
+        let mut memory_editor_block = Block::default()
+            .title(" Memory [E]ditor ")
             .borders(Borders::ALL);
 
         match self.focus_window {
@@ -75,9 +77,9 @@ impl Widget for &mut App<'_> {
                 process_list_block =
                     process_list_block.border_style(Style::default().fg(Color::Green));
             }
-            Focus::PinnedMemoryWindow => {
-                pinned_memory_block =
-                    pinned_memory_block.border_style(Style::default().fg(Color::Green));
+            Focus::MemoryEditorWindow => {
+                memory_editor_block =
+                    memory_editor_block.border_style(Style::default().fg(Color::Green));
             }
             _ => {}
         };
@@ -125,6 +127,10 @@ impl Widget for &mut App<'_> {
 
         // draw memory list
         memory_list_block.render(middle_cols[1], buf);
-        pinned_memory_block.render(right_cols[1], buf);
+
+        // draw memory editor
+        (&memory_editor_block).render(right_cols[1], buf);
+        self.memory_editor
+            .render(memory_editor_block.inner(right_cols[1]), buf);
     }
 }

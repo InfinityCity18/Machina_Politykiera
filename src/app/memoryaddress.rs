@@ -1,4 +1,9 @@
-use std::{error::Error, fs::File, io::{Read, Seek}, rc::Rc};
+use std::{
+    error::Error,
+    fs::File,
+    io::{Read, Seek},
+    rc::Rc,
+};
 
 use procfs::process::Process;
 
@@ -10,7 +15,11 @@ pub struct MemoryAddress {
 
 impl MemoryAddress {
     pub fn new(process: Rc<Process>, len: usize, offset: usize) -> Self {
-        Self { process: process, len, offset }
+        Self {
+            process: process,
+            len,
+            offset,
+        }
     }
 
     pub fn matches(&self, pat: &[u8], file: &mut File) -> Result<bool, Box<dyn Error>> {
@@ -24,5 +33,11 @@ impl MemoryAddress {
         } else {
             Ok(false)
         }
+    }
+}
+
+impl PartialEq for MemoryAddress {
+    fn eq(&self, other: &Self) -> bool {
+        self.offset == other.offset && self.process.pid() == other.process.pid()
     }
 }

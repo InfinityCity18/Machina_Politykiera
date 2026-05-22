@@ -60,6 +60,7 @@ impl App<'_> {
                 (KeyCode::Char('n'), _) => self.perform_scan(false), // next scan
                 (_, ProcessListWindow) => self.handle_process_list_key_event(key_event),
                 (_, MemoryListWindow) => self.handle_memory_list_key_event(key_event),
+                (_, MemoryEditorWindow) => self.handle_memory_edit_key_event(key_event),
                 _ => (),
             }
         }
@@ -95,6 +96,18 @@ impl App<'_> {
         match key_event.code {
             KeyCode::Up => self.memory_scanner.widget_state.select_previous(),
             KeyCode::Down => self.memory_scanner.widget_state.select_next(),
+            KeyCode::Enter => match self.memory_scanner.get_selected() {
+                Some(addr) => self.memory_editor.pin_address(addr),
+                None => (),
+            },
+            _ => (),
+        }
+    }
+
+    fn handle_memory_edit_key_event(&mut self, key_event: crossterm::event::KeyEvent) {
+        match key_event.code {
+            KeyCode::Up => self.memory_editor.widget_state.select_previous(),
+            KeyCode::Down => self.memory_editor.widget_state.select_next(),
             KeyCode::Enter => todo!(),
             _ => (),
         }

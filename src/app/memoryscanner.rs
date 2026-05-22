@@ -72,6 +72,13 @@ impl MemoryScanner<'_> {
         }
     }
 
+    pub fn get_selected(&self) -> Option<MemoryAddress> {
+        match self.widget_state.selected() {
+            Some(i) => Some(self.matching_addresses[i].clone()),
+            None => None,
+        }
+    }
+
     fn addresses_and_values(&self) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
         // its like this cuz of assumption of only one process being scanned
         let process = &self

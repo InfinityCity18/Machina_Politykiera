@@ -11,7 +11,6 @@ use crate::app::{
 pub struct MemoryEditor<'a> {
     pinned_addresses: Vec<MemoryAddress>,
 
-    pub list_selected: bool,
     pub widget_state: ListState,
     list_items: Vec<ListItem<'a>>,
 
@@ -24,16 +23,24 @@ impl MemoryEditor<'_> {
         Self {
             pinned_addresses: vec![],
             widget_state: ListState::default(),
-            list_selected: false,
             list_items: vec![],
             value_edit_field: InputField::new(" Edited Value ".to_string()),
         }
+    }
+
+    pub fn update(&mut self) {
+        self.list_items = self
+            .pinned_addresses
+            .iter()
+            .map(|addr| ListItem::new(format!("{}", addr.to_string())))
+            .collect()
     }
 
     pub fn pin_address(&mut self, address: MemoryAddress) {
         if !self.pinned_addresses.contains(&address) {
             self.pinned_addresses.push(address);
         }
+        self.update();
     }
 
     pub fn unpin_address(&mut self, address: MemoryAddress) {
@@ -45,6 +52,7 @@ impl MemoryEditor<'_> {
                 .unwrap();
             self.pinned_addresses.remove(index);
         }
+        self.update();
     }
 }
 

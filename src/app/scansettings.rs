@@ -8,6 +8,10 @@ pub struct ScanSettings {
 }
 
 impl ScanSettings {
+    pub fn new(process: Rc<Process>, value: ScanValue) -> ScanSettings {
+        ScanSettings { process, value }
+    }
+
     pub fn process(&self) -> &Rc<Process> {
         &self.process
     }
@@ -137,8 +141,7 @@ impl ScanValue {
             Double => ScanValue::Double(f64::from_le_bytes(bytes.try_into()?)),
             #[cfg(target_endian = "big")]
             Double => ScanValue::Double(f64::from_be_bytes(bytes.try_into()?)),
-
-            String(s) => ScanValue::String(std::str::from_utf8(bytes)?.to_string()),
+            String(_) => ScanValue::String(std::str::from_utf8(bytes)?.to_string()),
         };
         Ok(returnv)
     }
@@ -203,5 +206,73 @@ impl ScanValue {
             Double(_) => size_of::<f64>(),
             String(x) => size_of_val(x),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ScanValueType::*;
+    use crate::app::scansettings::ScanValue;
+    use std::error::Error;
+
+    #[test]
+    fn test_usr_input_byte() -> Result<(), Box<dyn Error>> {
+        use super::ScanValueType::Byte;
+        assert_eq!(
+            ScanValue::from_user_input("12".to_string(), Byte)?,
+            ScanValue::Byte(12)
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_usr_input_byte_overflow() {
+        assert!(ScanValue::from_user_input("512".to_string(), Byte).is_err());
+    }
+
+    #[test]
+    fn test_usr_input_float() {
+        assert_eq!(
+            ScanValue::from_user_input("1.22143".to_string(), Float).unwrap(),
+            ScanValue::Float(1.22143)
+        );
+    }
+
+    #[test]
+    fn test_usr_input_string() {
+        assert_eq!(
+            ScanValue::from_user_input("hello world".to_string(), String("hello world".len()))
+                .unwrap(),
+            ScanValue::String("hello world".to_string())
+        );
+    }
+
+    #[test]
+    fn test_usr_input_string_too_long() {
+        assert!(ScanValue::from_user_input("hello".to_string(), String(2)).is_err());
+    }
+
+    #[test]
+    fn test_scanval_from_bytes() {
+        assert_eq!(
+            ScanValue::convert_from_bytes(&['a' as u8, 'b' as u8, 'c' as u8], String(5)).unwrap(),
+            ScanValue::String("abc".to_string())
+        );
+    }
+
+    #[test]
+    fn test_scanval_from_bytes_err_utf8() {
+        assert!(
+            ScanValue::convert_from_bytes(&['a' as u8, 'b' as u8, 211 as u8], String(5)).is_err()
+        );
+    }
+
+    #[test]
+    fn test_scanval_le_be() {
+        let b = ScanValue::Word(5);
+        assert_eq!(b.len(), 2);
+        #[cfg(target_endian = "big")]
+        assert_eq!(b.as_bytes(), Box::from([0b00000000, 0b00000101]));
+        #[cfg(target_endian = "little")]
+        assert_eq!(b.as_bytes(), Box::from([0b00000101, 0b00000000]));
     }
 }

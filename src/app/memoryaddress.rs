@@ -12,7 +12,7 @@ use std::{
 
 use crate::app::scansettings::ScanValue;
 use crate::app::scansettings::ScanValueType;
-
+#[derive(Clone)]
 pub struct MemoryAddress {
     pub process: Rc<Process>,
     pub address: usize,
@@ -22,7 +22,7 @@ pub struct MemoryAddress {
 impl MemoryAddress {
     pub fn new(process: Rc<Process>, address: usize, val_type: ScanValueType) -> Self {
         Self {
-            process: process,
+            process,
             address,
             val_type,
         }
@@ -59,12 +59,12 @@ impl MemoryAddress {
 
     pub fn to_string(&self) -> String {
         let pid = match self.process.stat() {
-            Ok(stat) => format!("{:<8} {}", stat.pid, stat.comm),
+            Ok(stat) => format!("{:<8}", stat.pid),
             Err(_err) => "Error - couldn't parse name or pid".to_string(),
         };
 
         format!(
-            "{:<12}{:.12}{:.12}",
+            "{:<8}{:.12}{:.12}",
             pid,
             self.address,
             self.val_type.to_string()

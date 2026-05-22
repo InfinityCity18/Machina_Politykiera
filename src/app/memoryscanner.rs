@@ -13,7 +13,7 @@ use std::{
 
 use crate::app::{
     memoryaddress::MemoryAddress,
-    scansettings::{ScanSettings, ScanValue},
+    scansettings::{ScanSettings, ScanValue, ScanValueType},
 };
 
 // we need to hold the memory values for displaying ehhhh
@@ -21,6 +21,7 @@ use crate::app::{
 
 pub struct MemoryScanner<'a> {
     matching_addresses: Vec<MemoryAddress>,
+
     pub widget_state: ListState,
     list_items: Vec<ListItem<'a>>,
 }
@@ -35,7 +36,29 @@ impl MemoryScanner<'_> {
         }
     }
 
-    pub fn addresses_and_values(&self) -> Result<Vec<(usize, Vec<u8>)>, Box<dyn Error>> {
+    pub fn update_list(&mut self, value_type: ScanValueType) {
+        match self.addresses_and_values() {
+            Ok(items) => {
+                self.list_items = items
+                    .into_iter()
+                    .map(|(mem_addr, val)| {
+                        let res_value = match ScanValue::convert_from_bytes(
+                            val.as_slice(),
+                            mem_addr.val_type,
+                        ) {
+                            Ok(v) => v.to_string(),
+                            Err(_) => "Error".to_string(),
+                        };
+
+                        ListItem::new(format!("{}{}", mem_addr.to_string(), res_value))
+                    })
+                    .collect()
+            }
+            Err(_) => (),
+        }
+    }
+
+    fn addresses_and_values(&self) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
         // its like this cuz of assumption of only one process being scanned
         let process = &self
             .matching_addresses
@@ -54,7 +77,7 @@ impl MemoryScanner<'_> {
                 continue;
             }
             file.read_to_end(&mut buf)?;
-            v.push((addr.address, buf));
+            v.push((addr.clone(), buf));
         }
         detach(Pid::from_raw(process.pid()), None)?;
         Ok(v)

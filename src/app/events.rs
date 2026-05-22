@@ -57,8 +57,9 @@ impl App<'_> {
                 (KeyCode::Char('m'), _) => self.set_focus(MemoryListWindow),
                 (KeyCode::Char('t'), _) => self.scan_type_selector.cycle_type(),
                 (KeyCode::Char('f'), _) => self.perform_scan(true), // first scan
-                (KeyCode::Char('n'), _) => self.perform_scan(true), // next scan
+                (KeyCode::Char('n'), _) => self.perform_scan(false), // next scan
                 (_, ProcessListWindow) => self.handle_process_list_key_event(key_event),
+                (_, MemoryListWindow) => self.handle_memory_list_key_event(key_event),
                 _ => (),
             }
         }
@@ -86,6 +87,15 @@ impl App<'_> {
             KeyCode::Up => self.process_list.widget_state.select_previous(),
             KeyCode::Down => self.process_list.widget_state.select_next(),
             KeyCode::Enter => self.change_process_to_selected(),
+            _ => (),
+        }
+    }
+
+    fn handle_memory_list_key_event(&mut self, key_event: crossterm::event::KeyEvent) {
+        match key_event.code {
+            KeyCode::Up => self.memory_scanner.widget_state.select_previous(),
+            KeyCode::Down => self.memory_scanner.widget_state.select_next(),
+            KeyCode::Enter => todo!(),
             _ => (),
         }
     }

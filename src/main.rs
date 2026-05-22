@@ -4,7 +4,7 @@ use crate::app::events::Event;
 use crate::app::tui::title;
 mod app;
 
-const UPDATE_PERIOD_SEC: u64 = 100;
+const UPDATE_PERIOD_SEC: u64 = 500;
 
 pub fn update_lists_periodically(tx: mpsc::Sender<Event>, ms: u64) {
     loop {

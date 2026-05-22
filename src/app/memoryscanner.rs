@@ -34,14 +34,20 @@ pub struct MemoryScanner<'a> {
 impl MemoryScanner<'_> {
     /// Creates new instance of `MemoryScanner`
     pub fn new() -> Self {
-        Self {
+        let mut me = Self {
             matching_addresses: vec![],
             widget_state: ListState::default(),
             list_items: vec![],
-        }
+        };
+        me.widget_state.select_first();
+        me
     }
 
     pub fn update_list(&mut self) {
+        if self.matching_addresses.len() == 0 {
+            self.list_items = vec![];
+            return;
+        }
         match self.addresses_and_values() {
             Ok(items) => {
                 self.list_items = items
@@ -70,6 +76,7 @@ impl MemoryScanner<'_> {
             .get(0)
             .ok_or("No matching addresses")?
             .process;
+
         attach(Pid::from_raw(process.pid()))?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
         let mut v = Vec::new();

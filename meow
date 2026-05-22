@@ -33,5 +33,3 @@ warning: unused imports: `style::Color`, `style::Modifier`, `style::Style`, `tex
 warning: `machina_politykiera` (bin "machina_politykiera") generated 5 warnings (run `cargo fix --bin "machina_politykiera" -p machina_politykiera` to apply 5 suggestions)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
      Running `target/debug/machina_politykiera`
-Process error
-Process error

@@ -141,7 +141,9 @@ impl Widget for &mut App<'_> {
         next_scan_info.render(scan_info_row[1], buf);
 
         // draw memory list
-        memory_list_block.render(middle_cols[1], buf);
+        (&memory_list_block).render(middle_cols[1], buf);
+        self.memory_scanner
+            .render(memory_list_block.inner(middle_cols[1]), buf);
 
         // draw memory editor
         (&memory_editor_block).render(right_cols[1], buf);

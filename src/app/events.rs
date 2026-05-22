@@ -46,7 +46,7 @@ impl App<'_> {
         if key_event.kind == KeyEventKind::Press {
             match (key_event.code, self.focus_window.clone()) {
                 (KeyCode::Esc, _) => self.set_focus(ProcessListWindow),
-                (_, ValueInputField) => self.input_field.handle_key_event(key_event),
+                (_, ValueInputField) => self.scan_value_field.handle_key_event(key_event),
                 (KeyCode::Char('q'), _) => self.exit = true,
                 (KeyCode::Char('v'), _) => self.set_focus(ValueInputField),
                 (KeyCode::Char('e'), _) => self.set_focus(MemoryEditorWindow),
@@ -64,13 +64,13 @@ impl App<'_> {
     fn set_focus(&mut self, target: Focus) {
         // actions to perform after losing focus of a window
         match self.focus_window {
-            ValueInputField => self.input_field.selected = false,
+            ValueInputField => self.scan_value_field.selected = false,
             _ => (),
         }
 
         // actions to perform on gaining focus of a window
         match target {
-            ValueInputField => self.input_field.selected = true,
+            ValueInputField => self.scan_value_field.selected = true,
             _ => (),
         }
 

@@ -1,6 +1,5 @@
 use procfs::process::Process;
 use ratatui::{DefaultTerminal, Frame};
-use std::io::Empty;
 use std::{io, sync::mpsc};
 
 pub mod events;
@@ -33,7 +32,7 @@ pub struct App<'a> {
     //list_of_scanned_processes -> MemoryScan <-- would get rid of
     //list_of_pinned_processes -> PinnedProcesses
     focus_window: Focus,
-    input_field: InputField,
+    scan_value_field: InputField,
 }
 
 impl App<'_> {
@@ -46,7 +45,7 @@ impl App<'_> {
             memory_editor: MemoryEditor::new(),
             process_list: ProcessList::new(),
             focus_window: Focus::ProcessListWindow,
-            input_field: InputField::new(" [V]alue ".to_string()),
+            scan_value_field: InputField::new(" [V]alue ".to_string()),
         };
 
         me.process_list.update();

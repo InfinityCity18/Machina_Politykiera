@@ -100,7 +100,7 @@ impl Widget for &mut App<'_> {
             .render(process_list_block.inner(middle_cols[0]), buf);
 
         // draw scan options
-        self.input_field.render(scan_options_column[0], buf);
+        self.scan_value_field.render(scan_options_column[0], buf);
 
         let type_selection = Paragraph::new("Type select goes here")
             .block(Block::default().borders(Borders::ALL).title(" [T]ype "));

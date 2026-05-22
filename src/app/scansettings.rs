@@ -4,10 +4,9 @@ use procfs::process::Process;
 
 pub struct ScanSettings {
     process: Rc<Process>,
-    value: ScanValue
-    //type len (byte,word,dword, etc.) or enum of types
-    //first scan or next scan
-    //unsigned or signed bool
+    value: ScanValue, //type len (byte,word,dword, etc.) or enum of types
+                      //first scan or next scan
+                      //unsigned or signed bool
 }
 
 impl ScanSettings {
@@ -71,4 +70,3 @@ impl ScanValue {
         }
     }
 }
-

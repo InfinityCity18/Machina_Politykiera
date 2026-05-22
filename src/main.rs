@@ -1,10 +1,17 @@
-use std::{io, sync::mpsc, thread};
+use std::{io, sync::mpsc, thread, time::Duration};
 
+use crate::app::events::Event;
 use crate::app::tui::title;
-
 mod app;
 
 const UPDATE_PERIOD_SEC: u64 = 100;
+
+pub fn update_lists_periodically(tx: mpsc::Sender<Event>, ms: u64) {
+    loop {
+        tx.send(Event::ListsRefresh).unwrap();
+        thread::sleep(Duration::from_millis(ms));
+    }
+}
 
 fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
     let tx_input_events = event_tx.clone();
@@ -19,9 +26,10 @@ fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
 
     let tx_process_update = event_tx.clone();
     thread::spawn(move || {
-        app::processlist::update_processes_periodically(tx_process_update, UPDATE_PERIOD_SEC);
+        update_lists_periodically(tx_process_update, UPDATE_PERIOD_SEC);
     });
 }
+
 fn main() -> io::Result<()> {
     let mut terminal = ratatui::init();
 

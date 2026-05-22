@@ -17,7 +17,7 @@ pub fn handle_input_events(tx: mpsc::Sender<Event>) {
 pub enum Event {
     Key(crossterm::event::KeyEvent),
     Title(String),
-    ProcessesRefresh,
+    ListsRefresh,
 }
 
 #[derive(Clone)]
@@ -37,7 +37,10 @@ impl App<'_> {
         match rx.recv() {
             Ok(Key(key_event)) => self.handle_key_event(key_event)?,
             Ok(Title(text)) => self.title_text = text,
-            Ok(ProcessesRefresh) => self.process_list.update(),
+            Ok(ListsRefresh) => {
+                self.process_list.update();
+                self.memory_scanner.update_list();
+            }
             Err(_) => todo!("handle error bruh"),
         }
         Ok(())
@@ -53,7 +56,7 @@ impl App<'_> {
                 (KeyCode::Char('p'), _) => self.set_focus(ProcessListWindow),
                 (KeyCode::Char('m'), _) => self.set_focus(MemoryListWindow),
                 (KeyCode::Char('t'), _) => self.scan_type_selector.cycle_type(),
-                (KeyCode::Char('f'), _) => todo!(), // first scan
+                (KeyCode::Char('f'), _) => self.perform_first_scan(), // first scan
                 (KeyCode::Char('n'), _) => todo!(),
                 (_, ProcessListWindow) => self.handle_process_list_key_event(key_event),
                 _ => (),

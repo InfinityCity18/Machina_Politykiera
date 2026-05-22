@@ -1,13 +1,10 @@
-use crate::app::{App, Event};
 use procfs::process::{self, Process};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
     widgets::{List, ListItem, ListState, StatefulWidget, Widget},
 };
-use std::thread;
-use std::time::Duration;
-use std::{rc::Rc, sync::mpsc};
+use std::rc::Rc;
 
 /// A struct for convenient holding of processes list
 pub struct ProcessList<'a> {
@@ -15,13 +12,6 @@ pub struct ProcessList<'a> {
 
     pub widget_state: ListState,
     list_items: Vec<ListItem<'a>>,
-}
-
-pub fn update_processes_periodically(tx: mpsc::Sender<Event>, ms: u64) {
-    loop {
-        tx.send(Event::ProcessesRefresh).unwrap();
-        thread::sleep(Duration::from_millis(ms));
-    }
 }
 
 impl ProcessList<'_> {

@@ -18,6 +18,8 @@ use events::Focus;
 use crate::app::memoryeditor::MemoryEditor;
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
+use crate::app::scansettings::ScanSettings;
+use crate::app::scansettings::ScanValue;
 use crate::app::typeselector::TypeSelector;
 
 use inputfield::InputField;
@@ -77,6 +79,35 @@ impl App<'_> {
                 }
             }
         }
+    }
+
+    pub fn perform_first_scan(&mut self) {
+        // error handling is to be improved. Probably by logging
+        if !match self.selected_process.clone() {
+            Some(proc) => proc.is_alive(),
+            None => false,
+        } {
+            return;
+        }
+
+        let value = match ScanValue::from_user_input(
+            self.scan_value_field.input.clone(),
+            self.scan_type_selector.selected,
+        ) {
+            Ok(val) => Some(val),
+            Err(_) => None,
+        };
+
+        if value == None {
+            return;
+        }
+
+        let settings = ScanSettings::new(self.selected_process.clone().unwrap(), value.unwrap());
+
+        match self.memory_scanner.first_scan(settings) {
+            Ok(()) => (),
+            Err(_) => (), // should be handled probs, or logged
+        };
     }
 
     fn draw(&mut self, frame: &mut Frame) {

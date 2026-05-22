@@ -15,6 +15,11 @@ use crate::app::{
     memoryaddress::MemoryAddress,
     scansettings::{ScanSettings, ScanValue, ScanValueType},
 };
+use ratatui::{
+    buffer::Buffer,
+    layout::Rect,
+    widgets::{List, StatefulWidget, Widget},
+};
 
 // we need to hold the memory values for displaying ehhhh
 // truly
@@ -36,7 +41,7 @@ impl MemoryScanner<'_> {
         }
     }
 
-    pub fn update_list(&mut self, value_type: ScanValueType) {
+    pub fn update_list(&mut self) {
         match self.addresses_and_values() {
             Ok(items) => {
                 self.list_items = items
@@ -195,7 +200,13 @@ impl MemoryScanner<'_> {
         Ok(())
     }
 }
+impl Widget for &mut MemoryScanner<'_> {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let list = List::new(self.list_items.clone()).highlight_symbol(">> ");
 
+        StatefulWidget::render(list, area, buf, &mut self.widget_state);
+    }
+}
 #[cfg(test)]
 mod tests {
 

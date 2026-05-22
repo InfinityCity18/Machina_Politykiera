@@ -10,6 +10,7 @@ mod memoryscanner;
 pub mod processlist;
 mod scansettings;
 pub mod tui;
+mod typeselector;
 
 use events::Event;
 use events::Focus;
@@ -17,6 +18,7 @@ use events::Focus;
 use crate::app::memoryeditor::MemoryEditor;
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
+use crate::app::typeselector::TypeSelector;
 
 use inputfield::InputField;
 
@@ -33,6 +35,7 @@ pub struct App<'a> {
     //list_of_pinned_processes -> PinnedProcesses
     focus_window: Focus,
     scan_value_field: InputField,
+    scan_type_selector: TypeSelector,
 }
 
 impl App<'_> {
@@ -46,6 +49,7 @@ impl App<'_> {
             process_list: ProcessList::new(),
             focus_window: Focus::ProcessListWindow,
             scan_value_field: InputField::new(" [V]alue ".to_string()),
+            scan_type_selector: TypeSelector::new(),
         };
 
         me.process_list.update();

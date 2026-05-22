@@ -102,9 +102,7 @@ impl Widget for &mut App<'_> {
         // draw scan options
         self.scan_value_field.render(scan_options_column[0], buf);
 
-        let type_selection = Paragraph::new("Type select goes here")
-            .block(Block::default().borders(Borders::ALL).title(" [T]ype "));
-        type_selection.render(scan_options_column[1], buf);
+        self.scan_type_selector.render(scan_options_column[1], buf);
 
         let scan_info_text =
             Paragraph::new("Type above a [V]alue of the selected [T]ype then perform:")

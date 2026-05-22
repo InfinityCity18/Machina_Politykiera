@@ -32,6 +32,10 @@ impl InputField {
         }
     }
 
+    pub fn clear(&mut self) {
+        self.input = "".to_string();
+    }
+
     fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
         new_cursor_pos.clamp(0, self.input.chars().count())
     }

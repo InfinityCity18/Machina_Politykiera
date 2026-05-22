@@ -34,7 +34,7 @@ impl MemoryAddress {
         let mut file = File::open(format!("/proc/{}/mem", self.process.pid()))?;
         file.seek(std::io::SeekFrom::Start(self.address as u64))?;
         let mut bytes = Vec::with_capacity(self.val_type.len());
-        file.read_to_end(&mut bytes)?;
+        std::io::Read::by_ref(&mut file).take(self.val_type.len() as u64).read_to_end(&mut bytes)?;
         detach(Pid::from_raw(self.process.pid()), None)?;
         Ok(ScanValue::convert_from_bytes(&bytes, self.val_type)?)
     }

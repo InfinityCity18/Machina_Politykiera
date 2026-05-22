@@ -35,9 +35,11 @@ impl MemoryScanner {
             if file.seek(std::io::SeekFrom::Start(addr.address as u64)).is_err() {
                 continue;
             }
-            file.read_to_end(&mut buf)?;
+            file.by_ref().take(addr.val_type.len() as u64).read_to_end(&mut buf)?;
+            println!("BUF {:?} goi=wono {:?} w {:?}", buf, addr.val_type.len(), addr.val_type);
             v.push((addr.clone(), buf));
         }
+        drop(file);
         detach(Pid::from_raw(process.pid()), None)?;
         Ok(v)
     }
@@ -74,19 +76,19 @@ impl MemoryScanner {
                 j += 1;
                 i += 1;
                 if j < pattern.len() {
-                    bufread.read(std::slice::from_mut(&mut chr))?;
+                    bufread.read(std::slice::from_mut(&mut chr));
                 }
             } else if j != 0 {
                 j = lps[j - 1];
             } else {
                 i += 1;
-                bufread.read(std::slice::from_mut(&mut chr))?;
+                bufread.read(std::slice::from_mut(&mut chr));
             }
 
             if j == pattern.len() {
                 matching_addresses.push(MemoryAddress::new(process.clone(), start_offset + i - j, (val).into()));
                 j = lps[j - 1];
-                bufread.read(std::slice::from_mut(&mut chr))?;
+                bufread.read(std::slice::from_mut(&mut chr));
             }
         }
         return Ok(matching_addresses);
@@ -108,6 +110,7 @@ impl MemoryScanner {
                 // ignoring err,  want to continue seeking pattern in other maps
             }
         }
+        drop(file);
         detach(Pid::from_raw(process.pid()), None)?;
         self.matching_addresses = addresses;
         Ok(())
@@ -131,9 +134,10 @@ impl MemoryScanner {
             }
             let mut buf = Vec::with_capacity(addr.val_type.len());
             // Decided to compare even if it didnt read
-            let _ = file.read_to_end(&mut buf);
+            let _ = file.by_ref().take(addr.val_type.len() as u64).read_to_end(&mut buf);
             scan_settings.value().as_bytes() == buf.as_slice().into()
         });
+        drop(file);
         detach(Pid::from_raw(process.pid()), None)?;
         Ok(())
     }
@@ -141,7 +145,8 @@ impl MemoryScanner {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Write;
+    use std::io::Seek;
+use std::io::Write;
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -160,8 +165,9 @@ use super::MemoryScanner;
             child_pid = child.as_raw();
         }
             Ok(nix::unistd::ForkResult::Child) => {
-            let hello = "hello world";
-            std::thread::sleep(Duration::from_secs(20));
+            let hello = "hello world".to_string();
+            std::thread::sleep(Duration::from_secs(60));
+            let _s = std::hint::black_box(hello);
             unsafe { nix::libc::_exit(0) };
         }
             Err(_) => println!("Fork failed"),
@@ -182,8 +188,9 @@ use super::MemoryScanner;
     fn test_kmp() -> Result<(), Box<dyn std::error::Error>>{
         let mut file = std::fs::File::options().create(true).read(true).write(true).open("hello.txt")?;
         file.write(b"hello world")?;
+        file.seek(std::io::SeekFrom::Start(0))?;
         let addresses = MemoryScanner::kmp(&file, &ScanValue::String("hello world".to_string()), 11, Rc::new(Process::myself()?), 0)?;
-        println!("{:?}", addresses);
+        assert_eq!(addresses[0].address, 0);
         Ok(())
     }
 }

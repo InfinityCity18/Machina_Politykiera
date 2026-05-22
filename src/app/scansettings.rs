@@ -1,12 +1,10 @@
-use std::{io::Read, rc::Rc};
+use std::{error::Error, rc::Rc};
 
 use procfs::process::Process;
 
 pub struct ScanSettings {
     process: Rc<Process>,
-    value: ScanValue, //type len (byte,word,dword, etc.) or enum of types
-                      //first scan or next scan
-                      //unsigned or signed bool
+    value: ScanValue,
 }
 
 impl ScanSettings {
@@ -27,10 +25,91 @@ pub enum ScanValue {
     Float(f32),
     Double(f64),
     String(String),
-    Array(Vec<u8>), //if very bored, change to &[u8], but fun with lifetimes is not worth it for now
+}
+
+#[derive(Clone, Copy)]
+pub enum ScanValueType {
+    Byte,
+    Word,
+    DWord,
+    QWord,
+    Float,
+    Double,
+    String(usize),
+}
+
+impl From<&ScanValue> for ScanValueType {
+    fn from(value: &ScanValue) -> Self {
+        use ScanValueType::*;
+        match value {
+            ScanValue::Byte(_) => Byte,
+            ScanValue::Word(_) => Word,
+            ScanValue::DWord(_) => DWord,
+            ScanValue::QWord(_) => QWord,
+            ScanValue::Float(_) => Float,
+            ScanValue::Double(_) => Double,
+            ScanValue::String(x) => String(x.len()),
+        }
+    }
+}
+
+impl ScanValueType {
+    pub fn len(&self) -> usize {
+        use ScanValueType::*;
+        match self {
+            Byte => size_of::<u8>(),
+            Word => size_of::<u16>(),
+            DWord => size_of::<u32>(),
+            QWord => size_of::<u64>(),
+            Float => size_of::<f32>(),
+            Double => size_of::<f64>(),
+            String(x) => *x,
+        }
+    }
 }
 
 impl ScanValue {
+    pub fn convert_from_bytes(
+        bytes: &[u8],
+        val_type: ScanValueType,
+    ) -> Result<ScanValue, Box<dyn Error>> {
+        use ScanValueType::*;
+        let returnv = match val_type {
+            #[cfg(target_endian = "little")]
+            Byte => ScanValue::Byte(u8::from_le_bytes(bytes.try_into()?)),
+            #[cfg(target_endian = "big")]
+            Byte => ScanValue::Byte(u8::from_be_bytes(bytes.try_into()?)),
+
+            #[cfg(target_endian = "little")]
+            Word => ScanValue::Word(u16::from_le_bytes(bytes.try_into()?)),
+            #[cfg(target_endian = "big")]
+            Word => ScanValue::Word(u16::from_be_bytes(bytes.try_into()?)),
+
+            #[cfg(target_endian = "little")]
+            DWord => ScanValue::DWord(u32::from_le_bytes(bytes.try_into()?)),
+            #[cfg(target_endian = "big")]
+            DWord => ScanValue::DWord(u32::from_be_bytes(bytes.try_into()?)),
+
+            #[cfg(target_endian = "little")]
+            QWord => ScanValue::QWord(u64::from_le_bytes(bytes.try_into()?)),
+            #[cfg(target_endian = "big")]
+            QWord => ScanValue::QWord(u64::from_be_bytes(bytes.try_into()?)),
+
+            #[cfg(target_endian = "little")]
+            Float => ScanValue::Float(f32::from_le_bytes(bytes.try_into()?)),
+            #[cfg(target_endian = "big")]
+            Float => ScanValue::Float(f32::from_be_bytes(bytes.try_into()?)),
+
+            #[cfg(target_endian = "little")]
+            Double => ScanValue::Double(f64::from_le_bytes(bytes.try_into()?)),
+            #[cfg(target_endian = "big")]
+            Double => ScanValue::Double(f64::from_be_bytes(bytes.try_into()?)),
+
+            String(s) => ScanValue::String(std::str::from_utf8(bytes)?.to_string()),
+        };
+        Ok(returnv)
+    }
+
     pub fn as_bytes(&self) -> Box<[u8]> {
         use ScanValue::*;
         match self {
@@ -65,8 +144,19 @@ impl ScanValue {
             Double(n) => Box::new(n.to_be_bytes()),
 
             String(s) => Box::from(s.as_bytes()),
+        }
+    }
 
-            Array(v) => Box::from(v.as_slice()),
+    pub fn len(&self) -> usize {
+        use ScanValue::*;
+        match self {
+            Byte(_) => size_of::<u8>(),
+            Word(_) => size_of::<u16>(),
+            DWord(_) => size_of::<u32>(),
+            QWord(_) => size_of::<u64>(),
+            Float(_) => size_of::<f32>(),
+            Double(_) => size_of::<f64>(),
+            String(x) => size_of_val(x),
         }
     }
 }

@@ -30,8 +30,9 @@ impl ProcessList<'_> {
     pub fn update(&mut self) {
         match process::all_processes() {
             Ok(proc_it) => {
+                self.processes.clear();
                 self.processes = proc_it
-                    .filter_map(|res| res.ok().map(|p| Rc::new(p)))
+                    .filter_map(|res| res.inspect_err(|e| log::warn!("problem with opening process")).ok().map(|p| Rc::new(p)))
                     .collect();
                 self.list_items = self
                     .processes
@@ -48,7 +49,7 @@ impl ProcessList<'_> {
             Err(_) => {
                 // nothing ever happens
             }
-        }
+        };
     }
 
     /// Returns a reference to list of processes

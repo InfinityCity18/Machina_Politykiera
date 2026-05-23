@@ -53,12 +53,13 @@ impl MemoryAddress {
 
     pub fn set_value(&self, val_type: ScanValue) -> Result<(), Box<dyn Error>> {
         assert_eq!(self.val_type, ScanValueType::from(&val_type));
-        attach(Pid::from_raw(self.process.pid()))?;
-        waitpid(Pid::from_raw(self.process.pid()), None)?;
-        let mut file = File::options().write(true).open(format!("/proc/{}/mem", self.process.pid()))?;
-        file.seek(std::io::SeekFrom::Start(self.address as u64))?;
-        file.write(&val_type.as_bytes())?;
-        detach(Pid::from_raw(self.process.pid()), None)?;
+        attach(Pid::from_raw(self.process.pid())).inspect_err(|x| log::error!("attaching in set value failed : {x}"))?;
+        waitpid(Pid::from_raw(self.process.pid()), None).inspect_err(|x| log::error!("waitpid in set value failed : {x}"))?;
+        let mut file = File::options().write(true).open(format!("/proc/{}/mem", self.process.pid())).inspect_err(|x| log::error!("file open in set value failed : {x}"))?;
+        file.seek(std::io::SeekFrom::Start(self.address as u64)).inspect_err(|x| log::error!("file seek in set value failed : {x}"))?;
+        file.write(&val_type.as_bytes()).inspect_err(|x| log::error!("file write in set value failed : {x}"))?;
+        detach(Pid::from_raw(self.process.pid()), None).inspect_err(|x| log::error!("detach in set value failed : {x}"))?;
+        log::info!("Set value = {:?} of address = {}", &val_type.as_bytes(),self.address);
         Ok(())
     }
 

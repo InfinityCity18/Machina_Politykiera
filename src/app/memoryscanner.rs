@@ -90,9 +90,9 @@ impl MemoryScanner<'_> {
             .ok_or("No matching addresses")?
             .process;
 
-        attach(Pid::from_raw(process.pid()))?;
-        waitpid(Pid::from_raw(process.pid()), None)?;
-        let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
+        attach(Pid::from_raw(process.pid())).inspect_err(|x| log::error!("Failed to attach in getting values : {x}"))?;
+        waitpid(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("waitpid failed in getting values : {x}"))?;
+        let mut file = File::open(format!("/proc/{}/mem", process.pid())).inspect_err(|x| log::error!("File open failed in values get : {x}"))?;
         let mut v = Vec::new();
         for addr in &self.matching_addresses {
             let mut buf = Vec::with_capacity(addr.val_type.len());
@@ -108,7 +108,7 @@ impl MemoryScanner<'_> {
             v.push((addr.clone(), buf));
         }
         drop(file);
-        detach(Pid::from_raw(process.pid()), None)?;
+        detach(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("detach in value get failed : {x}"))?;
         Ok(v)
     }
 
@@ -143,7 +143,7 @@ impl MemoryScanner<'_> {
         let mut matching_addresses = Vec::new();
         let mut chr: u8 = 0;
         let mut bufread = BufReader::new(file);
-        bufread.read(std::slice::from_mut(&mut chr))?;
+        bufread.read(std::slice::from_mut(&mut chr)).inspect_err(|x| log::error!("first read in kmp failed : {x}"))?;
 
         while i < len_of_memory {
             if pattern[j] == chr {
@@ -172,11 +172,12 @@ impl MemoryScanner<'_> {
         return Ok(matching_addresses);
     }
 
-    pub fn first_scan(&mut self, scan_settings: ScanSettings) -> Result<(), Box<dyn Error>> {
+    pub fn first_scan(&mut self, scan_settings: ScanSettings, cap: usize) -> Result<(), Box<dyn Error>> {
         let process = scan_settings.process();
-        attach(Pid::from_raw(process.pid()))?;
-        waitpid(Pid::from_raw(process.pid()), None)?;
-        let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
+        attach(Pid::from_raw(process.pid())).inspect_err(|x| log::error!("Failed to attach in first scan : {x}"))?;
+        waitpid(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("waitpid failed in first scan : {x}"))?;
+        let mut file = File::open(format!("/proc/{}/mem", process.pid()))
+            .inspect_err(|x| log::error!("Opening file in first scan failed : {}", x) )?;
         let mut addresses = Vec::new();
 
         for map in process.maps()? {
@@ -194,13 +195,17 @@ impl MemoryScanner<'_> {
                     process.clone(),
                     map.address.0 as usize,
                 ) {
+                    if addresses.len() > cap {
+                        log::warn!("Reached maximum addresses found : cap = {cap}");
+                        break;
+                    }
                     addresses.append(&mut v);
                 }
                 // ignoring err,  want to continue seeking pattern in other maps
             }
         }
         drop(file);
-        detach(Pid::from_raw(process.pid()), None)?;
+        detach(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("Failed to detach in first scan : {x}"))?;
         self.matching_addresses = addresses;
         Ok(())
     }
@@ -217,9 +222,11 @@ impl MemoryScanner<'_> {
         {
             return Err("Processes not matching".into());
         }
-        attach(Pid::from_raw(process.pid()))?;
-        waitpid(Pid::from_raw(process.pid()), None)?;
-        let mut file = File::open(format!("/proc/{}/mem", process.pid()))?;
+        attach(Pid::from_raw(process.pid())).inspect_err(|x| log::error!("Failed to attach in next scan : {x}"))?;
+        waitpid(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("waitpid failed in next scan : {x}"))?;
+        let mut file = File::open(format!("/proc/{}/mem", process.pid())).inspect_err(|x| log::error!(
+            "Failed to open file in next scan : {x}"
+        ))?;
 
         self.matching_addresses.retain(|addr| {
             if file

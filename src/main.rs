@@ -38,7 +38,7 @@ fn main() -> io::Result<()> {
 
     let logs_list = Arc::new(Mutex::new(Vec::new()));
     let logger_global: &'static LoggerGlobal = Box::leak(Box::new(LoggerGlobal::new(logs_list.clone())));
-    set_logger(logger_global);
+    set_logger(logger_global).unwrap();
     log::set_max_level(log::LevelFilter::Info);
 
     let mut terminal = ratatui::init();

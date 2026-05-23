@@ -95,7 +95,7 @@ impl PartialEq for MemoryAddress {
 #[cfg(test)]
 mod tests {
     use crate::app::MemoryScanner;
-    use std::{error::Error, fs::File, io::{Read, Write}, os::fd::AsFd, time::Duration};
+    use std::{error::Error, fs::File, io::{Read, Write}, time::Duration};
     use procfs::process::Process;
     use crate::app::scansettings::{ScanSettings, ScanValue};
     use std::rc::Rc;

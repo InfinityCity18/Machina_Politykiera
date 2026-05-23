@@ -23,7 +23,6 @@ use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
 use crate::app::scansettings::ScanSettings;
 use crate::app::scansettings::ScanValue;
-use crate::app::scansettings::ScanValueType;
 use crate::app::typeselector::TypeSelector;
 use crate::MAX_FETCHED_ADDRESSES;
 

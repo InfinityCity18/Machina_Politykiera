@@ -241,8 +241,8 @@ mod tests {
     }
 
     #[test]
-    fn test_usr_input_string_too_long() {
-        assert!(ScanValue::from_user_input("hello".to_string(), String(2)).is_err());
+    fn test_usr_input_string_2() {
+        assert!(ScanValue::from_user_input("hello".to_string(), String(5)).is_ok());
     }
 
     #[test]

@@ -1,3 +1,4 @@
+use log::info;
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::prelude::{Buffer, Rect};
 use ratatui::widgets::{
@@ -70,6 +71,7 @@ impl MemoryEditor<'_> {
 
     pub fn unpin_address(&mut self, address: MemoryAddress) {
         if self.pinned_addresses.iter().find(|av| av.0 == address) == None {
+            info!("unpinned");
             let index = self
                 .pinned_addresses
                 .iter()
@@ -84,6 +86,13 @@ impl MemoryEditor<'_> {
         match self.widget_state.selected() {
             Some(i) => Some(self.pinned_addresses[i].0.clone()),
             None => None,
+        }
+    }
+
+    pub fn unpin_selected(&mut self) {
+        match self.widget_state.selected() {
+            Some(i) => self.unpin_address(self.pinned_addresses[i].0.clone()),
+            None => info!("Nothing to unpin"),
         }
     }
 }

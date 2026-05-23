@@ -43,7 +43,7 @@ impl Widget for &mut App<'_> {
             .constraints([Constraint::Ratio(2, 5), Constraint::Ratio(3, 5)])
             .split(columns[2]);
 
-        let title_block = Block::default().title(" Title ").borders(Borders::ALL);
+        let title_block = Block::default().borders(Borders::ALL);
         let guide_block = Block::default().title(" User Guide ").borders(Borders::ALL);
         let mut logger_block = Block::default()
             .title(" Activity [L]ogs ")

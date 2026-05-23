@@ -17,7 +17,7 @@ On your right you can see 4 windows:
 
 4. Memory Editor => change the values inside the pinned addresses
 
-5. Activity Logs => if anything unexpected happens, make sure to check them out 
+If anything unexpected happens, reference the activity log below.
         ",
     ).wrap(Wrap { trim: true })
     .render(area, buf);

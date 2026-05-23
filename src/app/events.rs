@@ -1,5 +1,5 @@
 use crossterm::event::{KeyCode, KeyEventKind};
-use log::{error, info};
+use log::error;
 use std::{error::Error, io, result::Result, sync::mpsc};
 
 pub fn handle_input_events(tx: mpsc::Sender<Event>) {
@@ -126,10 +126,7 @@ impl App<'_> {
         match key_event.code {
             KeyCode::Up => self.memory_editor.widget_state.select_previous(),
             KeyCode::Down => self.memory_editor.widget_state.select_next(),
-            KeyCode::Char('u') => {
-                self.memory_editor.unpin_selected();
-                info!("meow");
-            }
+            KeyCode::Char('u') => self.memory_editor.unpin_selected(),
             KeyCode::Enter => self.set_focus(NewValueInputField),
             _ => (),
         }

@@ -102,7 +102,8 @@ impl MemoryScanner {
         let mut addresses = Vec::new();
 
         for map in process.maps()? {
-            if map.pathname == MMapPath::Heap || map.pathname == MMapPath::Stack {
+            if map.pathname == MMapPath::Heap || map.pathname == MMapPath::Stack
+            || map.pathname == MMapPath::Anonymous {
                 file.seek(std::io::SeekFrom::Start(map.address.0))?;
                 let len = (map.address.1 - map.address.0) as usize;
                 if let Ok(mut v) = MemoryScanner::kmp(&mut file, scan_settings.value(), len, process.clone(), map.address.0 as usize) {
@@ -163,6 +164,7 @@ use super::MemoryScanner;
         match unsafe{nix::unistd::fork()} {
             Ok(nix::unistd::ForkResult::Parent { child, .. }) => {
             child_pid = child.as_raw();
+            std::thread::sleep(Duration::from_millis(100));
         }
             Ok(nix::unistd::ForkResult::Child) => {
             let hello = "hello world".to_string();
@@ -180,7 +182,7 @@ use super::MemoryScanner;
         ms.first_scan(sett)?;
         let results = ms.addresses_and_values()?;
         let found_tuple = results.get(0).ok_or("Nothing at index 0")?;
-        assert_eq!(searched_string.as_ptr(), found_tuple.0.address as *const u8);
+        assert_eq!(searched_string, String::from_utf8(found_tuple.1.clone())?);
         Ok(())
     }
 
@@ -189,7 +191,7 @@ use super::MemoryScanner;
         let mut file = std::fs::File::options().create(true).read(true).write(true).open("hello.txt")?;
         file.write(b"wdn ajubwdjawjd kabhello world dwa iodhwid ahwih")?;
         file.seek(std::io::SeekFrom::Start(0))?;
-        let addresses = MemoryScanner::kmp(&file, &ScanValue::String("hello world".to_string()), 11, Rc::new(Process::myself()?), 0)?;
+        let addresses = MemoryScanner::kmp(&file, &ScanValue::String("hello world".to_string()), 110, Rc::new(Process::myself()?), 0)?;
         remove_file("hello.txt")?;
         assert_eq!(addresses[0].address, 19);
         Ok(())

@@ -44,10 +44,59 @@ impl MemoryAddress {
         assert_eq!(self.val_type, ScanValueType::from(&val_type));
         attach(Pid::from_raw(self.process.pid()))?;
         waitpid(Pid::from_raw(self.process.pid()), None)?;
-        let mut file = File::open(format!("/proc/{}/mem", self.process.pid()))?;
+        let mut file = File::options().write(true).open(format!("/proc/{}/mem", self.process.pid()))?;
         file.seek(std::io::SeekFrom::Start(self.address as u64))?;
         file.write(&val_type.as_bytes())?;
         detach(Pid::from_raw(self.process.pid()), None)?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::app::MemoryScanner;
+    use std::{error::Error, fs::File, io::{Read, Write}, os::fd::AsFd, time::Duration};
+    use procfs::process::Process;
+    use crate::app::scansettings::{ScanSettings, ScanValue};
+    use std::rc::Rc;
+    #[test]
+    fn test_set_value() -> Result<(), Box<dyn Error>>{
+        let mut child_pid= 0;
+        let (read_fd, write_fd) = nix::unistd::pipe()?;
+
+        match unsafe{nix::unistd::fork()} {
+            Ok(nix::unistd::ForkResult::Parent { child, .. }) => {
+                nix::unistd::close(write_fd)?;
+
+                child_pid = child.as_raw();
+
+                std::thread::sleep(Duration::from_millis(100));
+            }
+            Ok(nix::unistd::ForkResult::Child) => {
+                nix::unistd::close(read_fd)?;
+
+                let hello = "hello world".to_string();
+                std::thread::sleep(Duration::from_secs(7));
+                let mut file: File = write_fd.into();
+                file.write_all(&[(hello == "world hello") as u8]).unwrap();
+                let _s = std::hint::black_box(hello);
+                drop(file);
+                unsafe { nix::libc::_exit(0) };
+            }
+            Err(_) => println!("Fork failed"),
+        }
+
+        let mut ms = MemoryScanner::new();
+        let self_proc = Process::new(child_pid)?;
+        let sett = ScanSettings::new(Rc::new(self_proc),ScanValue::String("hello world".to_string()));
+        ms.first_scan(sett)?;
+        let results = ms.addresses_and_values()?;
+        let found_tuple = results.get(0).ok_or("Nothing at index 0")?;
+        found_tuple.0.set_value(ScanValue::String("world hello".to_string()))?;
+        let mut buf = [0];
+        let mut file: File = read_fd.into();
+        file.read(&mut buf)?;
+        assert_eq!(buf[0], 1);
         Ok(())
     }
 }

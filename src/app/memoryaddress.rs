@@ -52,7 +52,13 @@ impl MemoryAddress {
     }
 
     pub fn set_value(&self, val_type: ScanValue) -> Result<(), Box<dyn Error>> {
-        assert_eq!(self.val_type, ScanValueType::from(&val_type));
+        if let ScanValue::String(_) = val_type && matches!(self.val_type, ScanValueType::String(_)) {
+            if val_type.len() > self.val_type.len() {
+                return Err("Inputted string in set value is too long".into())
+            }
+        } else {
+            assert_eq!(self.val_type, ScanValueType::from(&val_type));
+        }
         attach(Pid::from_raw(self.process.pid())).inspect_err(|x| log::error!("attaching in set value failed : {x}"))?;
         waitpid(Pid::from_raw(self.process.pid()), None).inspect_err(|x| log::error!("waitpid in set value failed : {x}"))?;
         let mut file = File::options().write(true).open(format!("/proc/{}/mem", self.process.pid())).inspect_err(|x| log::error!("file open in set value failed : {x}"))?;

@@ -96,13 +96,7 @@ impl ScanValue {
             ScanValueType::QWord => QWord(input.parse()?),
             ScanValueType::Float => Float(input.parse()?),
             ScanValueType::Double => Double(input.parse()?),
-            ScanValueType::String(l) => {
-                if input.len() > l {
-                    return Err("Inputted string is too long".into());
-                } else {
-                    String(input)
-                }
-            }
+            ScanValueType::String(_) => String(input)
         };
         Ok(parsed)
     }

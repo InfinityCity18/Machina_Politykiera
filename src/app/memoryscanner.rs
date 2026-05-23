@@ -249,6 +249,10 @@ impl MemoryScanner<'_> {
         {
             return Err("Processes not matching".into());
         }
+        let first_val_type = self.matching_addresses.get(0).ok_or("No addresses in list")?.val_type;
+        if scan_settings.value().len() > first_val_type.len() {
+            return Err("Input string is longer than first scan string".into());
+        }
         attach(Pid::from_raw(process.pid()))
             .inspect_err(|x| log::error!("Failed to attach in next scan : {x}"))?;
         waitpid(Pid::from_raw(process.pid()), None)

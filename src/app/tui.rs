@@ -1,4 +1,5 @@
 use crate::app::events::Focus;
+use crate::app::tui::guide::render_guide;
 use crate::app::App;
 use ratatui::layout::Direction;
 use ratatui::macros::constraint;
@@ -106,7 +107,8 @@ impl Widget for &mut App<'_> {
         title_window.render(left_cols[0], buf);
 
         // draw guide
-        guide_block.render(left_cols[1], buf);
+        (&guide_block).render(left_cols[1], buf);
+        render_guide(guide_block.inner(left_cols[1]), buf);
 
         // draw logger
         (&logger_block).render(left_cols[2], buf);

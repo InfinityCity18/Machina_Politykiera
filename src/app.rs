@@ -1,3 +1,4 @@
+use log::{error, info};
 use procfs::process::Process;
 use ratatui::{DefaultTerminal, Frame};
 use std::{io, rc::Rc, sync::mpsc};
@@ -92,10 +93,13 @@ impl App<'_> {
 
     pub fn change_process_to_selected(&mut self) {
         match self.process_list.get_selected() {
-            None => (),
+            None => error!("Couldn't switch process. None selected"),
             Some(proc) => {
                 if proc.is_alive() {
-                    self.selected_process = Some(proc)
+                    self.selected_process = Some(proc);
+                    info!("Selected new process");
+                } else {
+                    error!("Couldn't switch process. Selected process is dead")
                 }
             }
         }
@@ -107,6 +111,7 @@ impl App<'_> {
             Some(proc) => proc.is_alive(),
             None => false,
         } {
+            error!("Couldn't scan - selected process is dead or invalid");
             return;
         }
 
@@ -119,6 +124,7 @@ impl App<'_> {
         };
 
         if value == None {
+            error!("Couldn't scan - couldn't parse input value to the specified type");
             return;
         }
 
@@ -129,8 +135,15 @@ impl App<'_> {
         } else {
             self.memory_scanner.next_scan(settings)
         } {
-            Ok(()) => (),
-            Err(_) => (), // should be handled probs, or logged
+            Ok(()) => info!(
+                "Performed {} scan succesfully",
+                if first { "first" } else { "next" }
+            ),
+            Err(e) => error!(
+                "Couldn't perform {} scan. Error: {}",
+                if first { "first" } else { "next" },
+                e
+            ),
         };
     }
 
@@ -138,18 +151,26 @@ impl App<'_> {
     pub fn edit_selected_value(&mut self) {
         let addr = match self.memory_editor.get_selected() {
             Some(ad) => ad,
-            None => return,
+            None => {
+                error!("Couldn't edit value - invalid address");
+                return;
+            }
         };
 
         let val =
             match ScanValue::from_user_input(self.new_value_field.input.clone(), addr.val_type) {
                 Ok(v) => v,
-                Err(_) => return,
+                Err(_) => {
+                    error!(
+                        "Couldn't edit value - couldn't parse input value to the specified type"
+                    );
+                    return;
+                }
             };
 
         match addr.set_value(val) {
-            Ok(()) => return,
-            Err(_) => return,
+            Ok(()) => info!("Succesfully edited value"),
+            Err(e) => error!("Couldn't edit value. Error: {}", e),
         };
     }
 

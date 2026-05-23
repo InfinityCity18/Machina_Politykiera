@@ -51,6 +51,9 @@ impl MemoryScanner<'_> {
             self.list_items = vec![];
             return;
         }
+        if self.widget_state.selected() == None {
+            self.widget_state.select_first();
+        }
         match self.addresses_and_values() {
             Ok(items) => {
                 self.list_items = items

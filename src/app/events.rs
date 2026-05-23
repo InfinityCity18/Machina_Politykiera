@@ -25,6 +25,7 @@ pub enum Focus {
     ProcessListWindow,
     MemoryListWindow,
     MemoryEditorWindow,
+    LoggerWindow,
     ValueInputField,
 }
 
@@ -45,22 +46,32 @@ impl App<'_> {
         }
         Ok(())
     }
+
     fn handle_key_event(&mut self, key_event: crossterm::event::KeyEvent) -> io::Result<()> {
         if key_event.kind == KeyEventKind::Press {
             match (key_event.code, self.focus_window.clone()) {
+                // esc resets
                 (KeyCode::Esc, _) => self.set_focus(ProcessListWindow),
+
+                // input
                 (_, ValueInputField) => self.scan_value_field.handle_key_event(key_event),
+
+                // when not inputing - switching focus/exiting
                 (KeyCode::Char('q'), _) => self.exit = true,
                 (KeyCode::Char('v'), _) => self.set_focus(ValueInputField),
                 (KeyCode::Char('e'), _) => self.set_focus(MemoryEditorWindow),
                 (KeyCode::Char('p'), _) => self.set_focus(ProcessListWindow),
                 (KeyCode::Char('m'), _) => self.set_focus(MemoryListWindow),
+                (KeyCode::Char('l'), _) => self.set_focus(LoggerWindow),
                 (KeyCode::Char('t'), _) => self.scan_type_selector.cycle_type(),
                 (KeyCode::Char('f'), _) => self.perform_scan(true), // first scan
                 (KeyCode::Char('n'), _) => self.perform_scan(false), // next scan
+
+                // controls other than chars depend on window focus
                 (_, ProcessListWindow) => self.handle_process_list_key_event(key_event),
                 (_, MemoryListWindow) => self.handle_memory_list_key_event(key_event),
                 (_, MemoryEditorWindow) => self.handle_memory_edit_key_event(key_event),
+                (_, LoggerWindow) => self.handle_logger_key_event(key_event),
                 _ => (),
             }
         }
@@ -109,6 +120,14 @@ impl App<'_> {
             KeyCode::Up => self.memory_editor.widget_state.select_previous(),
             KeyCode::Down => self.memory_editor.widget_state.select_next(),
             KeyCode::Enter => todo!(),
+            _ => (),
+        }
+    }
+
+    fn handle_logger_key_event(&mut self, key_event: crossterm::event::KeyEvent) {
+        match key_event.code {
+            KeyCode::Up => self.logger.scroll_up(),
+            KeyCode::Down => self.logger.scroll_down(),
             _ => (),
         }
     }

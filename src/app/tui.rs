@@ -1,6 +1,7 @@
 use crate::app::events::Focus;
 use crate::app::App;
 use ratatui::layout::Direction;
+use ratatui::macros::constraint;
 use ratatui::widgets::{Borders, Paragraph};
 use ratatui::{
     layout::{Alignment, Constraint, Layout},
@@ -23,7 +24,11 @@ impl Widget for &mut App<'_> {
 
         let left_cols = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Length(10), Constraint::Fill(1)])
+            .constraints([
+                Constraint::Length(10),
+                Constraint::Fill(1),
+                Constraint::Length(10),
+            ])
             .split(columns[0]);
 
         let middle_cols = Layout::default()
@@ -38,6 +43,10 @@ impl Widget for &mut App<'_> {
 
         let title_block = Block::default().title(" Title ").borders(Borders::ALL);
         let guide_block = Block::default().title(" User Guide ").borders(Borders::ALL);
+        let mut logger_block = Block::default()
+            .title(" Activity [L]ogs ")
+            .borders(Borders::ALL);
+
         let mut process_list_block = Block::default()
             .title(" [P]rocesses ")
             .borders(Borders::ALL);
@@ -82,6 +91,9 @@ impl Widget for &mut App<'_> {
                 memory_editor_block =
                     memory_editor_block.border_style(Style::default().fg(Color::Green));
             }
+            Focus::LoggerWindow => {
+                logger_block = logger_block.border_style(Style::default().fg(Color::Green));
+            }
             _ => {}
         };
 
@@ -94,6 +106,10 @@ impl Widget for &mut App<'_> {
 
         // draw guide
         guide_block.render(left_cols[1], buf);
+
+        // draw logger
+        (&logger_block).render(left_cols[2], buf);
+        self.logger.render(logger_block.inner(left_cols[2]), buf);
 
         // draw process list
         (&process_list_block).render(middle_cols[0], buf);

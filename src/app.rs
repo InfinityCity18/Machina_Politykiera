@@ -4,6 +4,7 @@ use std::{io, rc::Rc, sync::mpsc};
 
 pub mod events;
 mod inputfield;
+mod logger;
 mod memoryaddress;
 mod memoryeditor;
 mod memoryscanner;
@@ -15,6 +16,7 @@ mod typeselector;
 use events::Event;
 use events::Focus;
 
+use crate::app::logger::Logger;
 use crate::app::memoryeditor::MemoryEditor;
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
@@ -29,15 +31,15 @@ pub struct App<'a> {
     pub title_text: String,
 
     selected_process: Option<Rc<Process>>,
+
+    logger: Logger,
     memory_scanner: MemoryScanner<'a>,
     memory_editor: MemoryEditor<'a>,
     process_list: ProcessList<'a>,
-    //selected_process -> Process
-    //list_of_scanned_processes -> MemoryScan <-- would get rid of
-    //list_of_pinned_processes -> PinnedProcesses
-    focus_window: Focus,
     scan_value_field: InputField,
     scan_type_selector: TypeSelector,
+
+    focus_window: Focus,
 }
 
 impl App<'_> {
@@ -46,6 +48,8 @@ impl App<'_> {
             exit: false,
             title_text: String::from(""), // this doesn't matter. Gets set by running title cycling
             selected_process: None,
+
+            logger: Logger::new(),
             memory_scanner: MemoryScanner::new(),
             memory_editor: MemoryEditor::new(),
             process_list: ProcessList::new(),
@@ -55,6 +59,19 @@ impl App<'_> {
         };
 
         me.process_list.update();
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("we are many".to_string());
+        me.logger.log("meow log 1".to_string());
+        me.logger.log("woof log 2".to_string());
+        me.logger.log("very long meowsers log 3 that probably takes up more than one line but i can never really be fully sure".to_string());
         me
     }
 

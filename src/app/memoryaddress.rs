@@ -54,7 +54,7 @@ impl MemoryAddress {
     pub fn set_value(&self, val_type: ScanValue) -> Result<(), Box<dyn Error>> {
         if let ScanValue::String(_) = val_type && matches!(self.val_type, ScanValueType::String(_)) {
             if val_type.len() > self.val_type.len() {
-                return Err("Inputted string in set value is too long".into())
+                return Err(format!("Inputted string in set value is too long: inputted = {:?}, pinned = {:?}", self.val_type, val_type).into())
             }
         } else {
             assert_eq!(self.val_type, ScanValueType::from(&val_type));

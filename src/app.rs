@@ -87,6 +87,7 @@ impl App<'_> {
                 if proc.is_alive() {
                     self.selected_process = Some(proc);
                     info!("Selected new process");
+                    self.memory_scanner.clear();
                 } else {
                     error!("Couldn't switch process. Selected process is dead")
                 }

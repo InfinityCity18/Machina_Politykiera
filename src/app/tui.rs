@@ -43,8 +43,12 @@ impl Widget for &mut App<'_> {
             .constraints([Constraint::Ratio(2, 5), Constraint::Ratio(3, 5)])
             .split(columns[2]);
 
-        let title_block = Block::default().title(" Title ").borders(Borders::ALL);
-        let guide_block = Block::default().title(" User Guide ").borders(Borders::ALL);
+        let title_block = Block::default().borders(Borders::ALL);
+        let guide_block = Block::default()
+            .title(" User Guide ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::LightYellow));
+
         let mut logger_block = Block::default()
             .title(" Activity [L]ogs ")
             .borders(Borders::ALL);
@@ -55,6 +59,7 @@ impl Widget for &mut App<'_> {
         let mut memory_list_block = Block::default()
             .title(" Scanned [M]emory ")
             .borders(Borders::ALL);
+
         let scan_options_block = Block::default()
             .title(" Scan Options ")
             .borders(Borders::ALL);
@@ -116,8 +121,13 @@ impl Widget for &mut App<'_> {
 
         // draw process list
         (&process_list_block).render(middle_cols[0], buf);
-        self.process_list
-            .render(process_list_block.inner(middle_cols[0]), buf);
+        let tmp_col = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Length(1), Constraint::Fill(1)])
+            .split(process_list_block.inner(middle_cols[0]));
+        Paragraph::new("   PID     Name").render(tmp_col[0], buf);
+
+        self.process_list.render(tmp_col[1], buf);
 
         // draw scan options
         let selected_process_text = match self.selected_process.clone() {
@@ -147,37 +157,54 @@ impl Widget for &mut App<'_> {
         scan_info_text.render(scan_options_column[3], buf);
         let first_scan_info =
             Paragraph::new("[F]irst scan to find all memory adresses with matching values")
-                .block(Block::default().borders(Borders::all()))
+                .block(
+                    Block::default()
+                        .borders(Borders::all())
+                        .border_style(Style::default().fg(Color::LightYellow)),
+                )
                 .wrap(Wrap { trim: true });
 
         first_scan_info.render(scan_info_row[0], buf);
         let next_scan_info = Paragraph::new(
             "[N]ext scan to filter out found memory adresses that don't match the value",
         )
-        .block(Block::default().borders(Borders::all()))
+        .block(
+            Block::default()
+                .borders(Borders::all())
+                .border_style(Style::default().fg(Color::LightYellow)),
+        )
         .wrap(Wrap { trim: true });
 
         next_scan_info.render(scan_info_row[1], buf);
 
         // draw memory list
         (&memory_list_block).render(middle_cols[1], buf);
-        self.memory_scanner
-            .render(memory_list_block.inner(middle_cols[1]), buf);
+        drop(tmp_col);
+        let tmp_col = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Length(1), Constraint::Fill(1)])
+            .split(memory_list_block.inner(middle_cols[1]));
+        Paragraph::new("   PID     ADDRESS             TYPE        VALUE").render(tmp_col[0], buf);
+
+        self.memory_scanner.render(tmp_col[1], buf);
 
         // draw memory editor
         (&memory_editor_block).render(right_cols[1], buf);
         let memory_editor_column = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
+                Constraint::Length(1),
                 Constraint::Fill(1),
                 Constraint::Length(3),
                 Constraint::Length(5),
             ])
             .split(memory_editor_block.inner(right_cols[1]));
 
-        self.memory_editor.render(memory_editor_column[0], buf);
-        self.new_value_field.render(memory_editor_column[1], buf);
+        Paragraph::new("   PID     ADDRESS             TYPE        VALUE")
+            .render(memory_editor_column[0], buf);
+        self.memory_editor.render(memory_editor_column[1], buf);
+        self.new_value_field.render(memory_editor_column[2], buf);
         Paragraph::new("Type above the new value for the selected memory address. Make sure it matches the correct type and press enter to overwrite.")
-            .wrap(Wrap { trim: true }).block(Block::default().borders(Borders::all())).render(memory_editor_column[2], buf);
+            .wrap(Wrap { trim: true }).block(Block::default().borders(Borders::all()).border_style(Style::default().fg(Color::LightYellow))).render(memory_editor_column[3], buf);
     }
 }

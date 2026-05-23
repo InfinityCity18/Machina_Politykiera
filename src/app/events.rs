@@ -1,4 +1,5 @@
 use crossterm::event::{KeyCode, KeyEventKind};
+use log::error;
 use std::{error::Error, io, result::Result, sync::mpsc};
 
 pub fn handle_input_events(tx: mpsc::Sender<Event>) {
@@ -6,9 +7,9 @@ pub fn handle_input_events(tx: mpsc::Sender<Event>) {
         match crossterm::event::read() {
             Ok(crossterm::event::Event::Key(key_event)) => match tx.send(Event::Key(key_event)) {
                 Ok(_) => (),
-                Err(_) => todo!("handle error bruh"),
+                Err(e) => error!("Error sending key event: {}", e),
             },
-            Err(_) => todo!("handle error bruh"),
+            Err(e) => error!("Error reading input event: {}", e),
             _ => (),
         }
     }
@@ -44,7 +45,7 @@ impl App<'_> {
                 self.memory_scanner.update_list();
                 self.memory_editor.update();
             }
-            Err(_) => todo!("handle error bruh"),
+            Err(e) => todo!("Error receiving event: {}", e),
         }
         Ok(())
     }
@@ -56,6 +57,7 @@ impl App<'_> {
                 (KeyCode::Esc, _) => self.set_focus(ProcessListWindow),
 
                 // input
+                (KeyCode::Enter, ValueInputField) => self.set_focus(ProcessListWindow),
                 (_, ValueInputField) => self.scan_value_field.handle_key_event(key_event),
                 (_, NewValueInputField) => self.handle_new_value_key_event(key_event),
 

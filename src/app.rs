@@ -24,6 +24,7 @@ use crate::app::processlist::ProcessList;
 use crate::app::scansettings::ScanSettings;
 use crate::app::scansettings::ScanValue;
 use crate::app::typeselector::TypeSelector;
+use crate::MAX_FETCHED_ADDRESSES;
 
 use inputfield::InputField;
 
@@ -64,18 +65,6 @@ impl App<'_> {
         };
 
         me.process_list.update();
-        // me.logger.log("we are many1".to_string());
-        // me.logger.log("we are many2".to_string());
-        // me.logger.log("we are many3".to_string());
-        // me.logger.log("we are many4".to_string());
-        // me.logger.log("we are many5".to_string());
-        // me.logger.log("we are many6".to_string());
-        // me.logger.log("we are many7".to_string());
-        // me.logger.log("we are many8".to_string());
-        // me.logger.log("we are many9".to_string());
-        // me.logger.log("meow log 1".to_string());
-        // me.logger.log("woof log 2".to_string());
-        // me.logger.log("very long meowsers log 3 that probably takes up more than one line but i can never really be fully sure".to_string());
         me
     }
 
@@ -131,7 +120,8 @@ impl App<'_> {
         let settings = ScanSettings::new(self.selected_process.clone().unwrap(), value.unwrap());
 
         match if first {
-            self.memory_scanner.first_scan(settings)
+            self.memory_scanner
+                .first_scan(settings, MAX_FETCHED_ADDRESSES)
         } else {
             self.memory_scanner.next_scan(settings)
         } {

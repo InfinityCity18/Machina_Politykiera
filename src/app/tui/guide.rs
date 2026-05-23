@@ -1,14 +1,5 @@
-use crate::app::events::Focus;
-use crate::app::App;
-use ratatui::layout::Direction;
-use ratatui::macros::constraint;
-use ratatui::widgets::{BorderType, Borders, Paragraph};
-use ratatui::{
-    layout::{Alignment, Constraint, Layout},
-    prelude::{Buffer, Rect},
-    style::{Color, Style},
-    widgets::{Block, Widget, Wrap},
-};
+use ratatui::widgets::Paragraph;
+use ratatui::widgets::{Widget, Wrap};
 
 pub fn render_guide(area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer) {
     Paragraph::new(

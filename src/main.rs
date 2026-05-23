@@ -9,6 +9,7 @@ use crate::app::tui::title;
 mod app;
 
 const UPDATE_PERIOD_SEC: u64 = 500;
+const MAX_FETCHED_ADDRESSES: usize = 100000;
 
 pub fn update_lists_periodically(tx: mpsc::Sender<Event>, ms: u64) {
     loop {
@@ -35,9 +36,9 @@ fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
 }
 
 fn main() -> io::Result<()> {
-
     let logs_list = Arc::new(Mutex::new(Vec::new()));
-    let logger_global: &'static LoggerGlobal = Box::leak(Box::new(LoggerGlobal::new(logs_list.clone())));
+    let logger_global: &'static LoggerGlobal =
+        Box::leak(Box::new(LoggerGlobal::new(logs_list.clone())));
     set_logger(logger_global).unwrap();
     log::set_max_level(log::LevelFilter::Info);
 

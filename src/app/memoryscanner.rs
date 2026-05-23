@@ -34,6 +34,8 @@ pub struct MemoryScanner<'a> {
     list_items: Vec<ListItem<'a>>,
 }
 
+const REFRESH_WINDOW_SIZE: usize = 25;
+
 impl MemoryScanner<'_> {
     /// Creates new instance of `MemoryScanner`
     pub fn new() -> Self {
@@ -54,7 +56,15 @@ impl MemoryScanner<'_> {
         if self.widget_state.selected() == None {
             self.widget_state.select_first();
         }
-        match self.addresses_and_values() {
+        let ind = match self.widget_state.selected() {
+            None => return,
+            Some(ind) => ind,
+        };
+
+        let l = 0.max(ind - REFRESH_WINDOW_SIZE);
+        let r = (self.matching_addresses.len() - 1).min(ind + REFRESH_WINDOW_SIZE);
+
+        match self.addresses_and_values(&self.matching_addresses[l..=r]) {
             Ok(items) => {
                 self.list_items = items
                     .into_iter()
@@ -82,7 +92,9 @@ impl MemoryScanner<'_> {
         }
     }
 
-    pub(super) fn addresses_and_values(&self) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
+    pub(super) fn addresses_and_values(
+        &self,
+    ) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
         // its like this cuz of assumption of only one process being scanned
         let process = &self
             .matching_addresses
@@ -90,9 +102,12 @@ impl MemoryScanner<'_> {
             .ok_or("No matching addresses")?
             .process;
 
-        attach(Pid::from_raw(process.pid())).inspect_err(|x| log::error!("Failed to attach in getting values : {x}"))?;
-        waitpid(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("waitpid failed in getting values : {x}"))?;
-        let mut file = File::open(format!("/proc/{}/mem", process.pid())).inspect_err(|x| log::error!("File open failed in values get : {x}"))?;
+        attach(Pid::from_raw(process.pid()))
+            .inspect_err(|x| log::error!("Failed to attach in getting values : {x}"))?;
+        waitpid(Pid::from_raw(process.pid()), None)
+            .inspect_err(|x| log::error!("waitpid failed in getting values : {x}"))?;
+        let mut file = File::open(format!("/proc/{}/mem", process.pid()))
+            .inspect_err(|x| log::error!("File open failed in values get : {x}"))?;
         let mut v = Vec::new();
         for addr in &self.matching_addresses {
             let mut buf = Vec::with_capacity(addr.val_type.len());
@@ -108,7 +123,8 @@ impl MemoryScanner<'_> {
             v.push((addr.clone(), buf));
         }
         drop(file);
-        detach(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("detach in value get failed : {x}"))?;
+        detach(Pid::from_raw(process.pid()), None)
+            .inspect_err(|x| log::error!("detach in value get failed : {x}"))?;
         Ok(v)
     }
 
@@ -143,7 +159,9 @@ impl MemoryScanner<'_> {
         let mut matching_addresses = Vec::new();
         let mut chr: u8 = 0;
         let mut bufread = BufReader::new(file);
-        bufread.read(std::slice::from_mut(&mut chr)).inspect_err(|x| log::error!("first read in kmp failed : {x}"))?;
+        bufread
+            .read(std::slice::from_mut(&mut chr))
+            .inspect_err(|x| log::error!("first read in kmp failed : {x}"))?;
 
         while i < len_of_memory {
             if pattern[j] == chr {
@@ -172,12 +190,18 @@ impl MemoryScanner<'_> {
         return Ok(matching_addresses);
     }
 
-    pub fn first_scan(&mut self, scan_settings: ScanSettings, cap: usize) -> Result<(), Box<dyn Error>> {
+    pub fn first_scan(
+        &mut self,
+        scan_settings: ScanSettings,
+        cap: usize,
+    ) -> Result<(), Box<dyn Error>> {
         let process = scan_settings.process();
-        attach(Pid::from_raw(process.pid())).inspect_err(|x| log::error!("Failed to attach in first scan : {x}"))?;
-        waitpid(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("waitpid failed in first scan : {x}"))?;
+        attach(Pid::from_raw(process.pid()))
+            .inspect_err(|x| log::error!("Failed to attach in first scan : {x}"))?;
+        waitpid(Pid::from_raw(process.pid()), None)
+            .inspect_err(|x| log::error!("waitpid failed in first scan : {x}"))?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))
-            .inspect_err(|x| log::error!("Opening file in first scan failed : {}", x) )?;
+            .inspect_err(|x| log::error!("Opening file in first scan failed : {}", x))?;
         let mut addresses = Vec::new();
 
         for map in process.maps()? {
@@ -205,7 +229,8 @@ impl MemoryScanner<'_> {
             }
         }
         drop(file);
-        detach(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("Failed to detach in first scan : {x}"))?;
+        detach(Pid::from_raw(process.pid()), None)
+            .inspect_err(|x| log::error!("Failed to detach in first scan : {x}"))?;
         self.matching_addresses = addresses;
         Ok(())
     }
@@ -222,11 +247,12 @@ impl MemoryScanner<'_> {
         {
             return Err("Processes not matching".into());
         }
-        attach(Pid::from_raw(process.pid())).inspect_err(|x| log::error!("Failed to attach in next scan : {x}"))?;
-        waitpid(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("waitpid failed in next scan : {x}"))?;
-        let mut file = File::open(format!("/proc/{}/mem", process.pid())).inspect_err(|x| log::error!(
-            "Failed to open file in next scan : {x}"
-        ))?;
+        attach(Pid::from_raw(process.pid()))
+            .inspect_err(|x| log::error!("Failed to attach in next scan : {x}"))?;
+        waitpid(Pid::from_raw(process.pid()), None)
+            .inspect_err(|x| log::error!("waitpid failed in next scan : {x}"))?;
+        let mut file = File::open(format!("/proc/{}/mem", process.pid()))
+            .inspect_err(|x| log::error!("Failed to open file in next scan : {x}"))?;
 
         self.matching_addresses.retain(|addr| {
             if file

@@ -1,3 +1,4 @@
+use log::{error, info};
 use procfs::process::Process;
 use ratatui::{DefaultTerminal, Frame};
 use std::{io, rc::Rc, sync::mpsc};
@@ -107,6 +108,7 @@ impl App<'_> {
             Some(proc) => proc.is_alive(),
             None => false,
         } {
+            error!("Couldn't scan - selected process is dead or invalid");
             return;
         }
 
@@ -119,6 +121,7 @@ impl App<'_> {
         };
 
         if value == None {
+            error!("Couldn't scan - couldn't parse input value to the specified type");
             return;
         }
 
@@ -129,8 +132,15 @@ impl App<'_> {
         } else {
             self.memory_scanner.next_scan(settings)
         } {
-            Ok(()) => (),
-            Err(_) => (), // should be handled probs, or logged
+            Ok(()) => info!(
+                "Performed {} scan succesfully",
+                if first { "first" } else { "next" }
+            ),
+            Err(e) => error!(
+                "Couldn't perform {} scan. Error: {}",
+                if first { "first" } else { "next" },
+                e
+            ),
         };
     }
 

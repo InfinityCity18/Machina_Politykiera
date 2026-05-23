@@ -1,3 +1,4 @@
+use log::info;
 use nix::{
     sys::{
         ptrace::{attach, detach},
@@ -28,13 +29,13 @@ use ratatui::{
 // truly
 
 pub struct MemoryScanner<'a> {
-    matching_addresses: Vec<MemoryAddress>,
+    pub matching_addresses: Vec<MemoryAddress>,
 
     pub widget_state: ListState,
     list_items: Vec<ListItem<'a>>,
 }
 
-const REFRESH_WINDOW_SIZE: usize = 25;
+const REFRESH_WINDOW_SIZE: usize = 100;
 
 impl MemoryScanner<'_> {
     /// Creates new instance of `MemoryScanner`
@@ -61,7 +62,7 @@ impl MemoryScanner<'_> {
             Some(ind) => ind,
         };
 
-        let l = 0.max(ind - REFRESH_WINDOW_SIZE);
+        let l = 0.max(ind.saturating_sub(REFRESH_WINDOW_SIZE));
         let r = (self.matching_addresses.len() - 1).min(ind + REFRESH_WINDOW_SIZE);
 
         match self.addresses_and_values(&self.matching_addresses[l..=r]) {
@@ -94,6 +95,7 @@ impl MemoryScanner<'_> {
 
     pub(super) fn addresses_and_values(
         &self,
+        filter_addresses: &[MemoryAddress],
     ) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
         // its like this cuz of assumption of only one process being scanned
         let process = &self
@@ -109,7 +111,7 @@ impl MemoryScanner<'_> {
         let mut file = File::open(format!("/proc/{}/mem", process.pid()))
             .inspect_err(|x| log::error!("File open failed in values get : {x}"))?;
         let mut v = Vec::new();
-        for addr in &self.matching_addresses {
+        for addr in filter_addresses {
             let mut buf = Vec::with_capacity(addr.val_type.len());
             if file
                 .seek(std::io::SeekFrom::Start(addr.address as u64))
@@ -324,8 +326,8 @@ mod tests {
             Rc::new(self_proc),
             ScanValue::String("hello world".to_string()),
         );
-        ms.first_scan(sett)?;
-        let results = ms.addresses_and_values()?;
+        ms.first_scan(sett, usize::MAX)?;
+        let results = ms.addresses_and_values(&ms.matching_addresses)?;
         let found_tuple = results.get(0).ok_or("Nothing at index 0")?;
         assert_eq!(searched_string, String::from_utf8(found_tuple.1.clone())?);
         Ok(())

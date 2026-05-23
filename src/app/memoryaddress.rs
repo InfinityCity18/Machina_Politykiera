@@ -123,8 +123,8 @@ mod tests {
         let mut ms = MemoryScanner::new();
         let self_proc = Process::new(child_pid)?;
         let sett = ScanSettings::new(Rc::new(self_proc),ScanValue::String("hello world".to_string()));
-        ms.first_scan(sett)?;
-        let results = ms.addresses_and_values()?;
+        ms.first_scan(sett, usize::MAX)?;
+        let results = ms.addresses_and_values(&ms.matching_addresses)?;
         let found_tuple = results.get(0).ok_or("Nothing at index 0")?;
         found_tuple.0.set_value(ScanValue::String("world hello".to_string()))?;
         let mut buf = [0];

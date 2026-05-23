@@ -694,6 +694,7 @@ name = "machina_politykiera"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "log",
  "nix 0.31.2",
  "procfs",
  "ratatui",

@@ -82,7 +82,7 @@ impl MemoryScanner<'_> {
         }
     }
 
-    fn addresses_and_values(&self) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
+    pub(super) fn addresses_and_values(&self) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
         // its like this cuz of assumption of only one process being scanned
         let process = &self
             .matching_addresses

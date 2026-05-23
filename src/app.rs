@@ -4,7 +4,7 @@ use std::{io, rc::Rc, sync::mpsc};
 
 pub mod events;
 mod inputfield;
-mod logger;
+pub mod logger;
 mod memoryaddress;
 mod memoryeditor;
 mod memoryscanner;
@@ -16,7 +16,7 @@ mod typeselector;
 use events::Event;
 use events::Focus;
 
-use crate::app::logger::Logger;
+use crate::app::logger::{Logger, LogsMutex};
 use crate::app::memoryeditor::MemoryEditor;
 use crate::app::memoryscanner::MemoryScanner;
 use crate::app::processlist::ProcessList;
@@ -45,13 +45,13 @@ pub struct App<'a> {
 }
 
 impl App<'_> {
-    pub fn new() -> Self {
+    pub fn new(logs_mutex: LogsMutex) -> Self {
         let mut me = Self {
             exit: false,
             title_text: String::from(""), // this doesn't matter. Gets set by running title cycling
             selected_process: None,
 
-            logger: Logger::new(),
+            logger: Logger::new(logs_mutex),
             memory_scanner: MemoryScanner::new(),
             memory_editor: MemoryEditor::new(),
             process_list: ProcessList::new(),
@@ -63,18 +63,18 @@ impl App<'_> {
         };
 
         me.process_list.update();
-        me.logger.log("we are many1".to_string());
-        me.logger.log("we are many2".to_string());
-        me.logger.log("we are many3".to_string());
-        me.logger.log("we are many4".to_string());
-        me.logger.log("we are many5".to_string());
-        me.logger.log("we are many6".to_string());
-        me.logger.log("we are many7".to_string());
-        me.logger.log("we are many8".to_string());
-        me.logger.log("we are many9".to_string());
-        me.logger.log("meow log 1".to_string());
-        me.logger.log("woof log 2".to_string());
-        me.logger.log("very long meowsers log 3 that probably takes up more than one line but i can never really be fully sure".to_string());
+        // me.logger.log("we are many1".to_string());
+        // me.logger.log("we are many2".to_string());
+        // me.logger.log("we are many3".to_string());
+        // me.logger.log("we are many4".to_string());
+        // me.logger.log("we are many5".to_string());
+        // me.logger.log("we are many6".to_string());
+        // me.logger.log("we are many7".to_string());
+        // me.logger.log("we are many8".to_string());
+        // me.logger.log("we are many9".to_string());
+        // me.logger.log("meow log 1".to_string());
+        // me.logger.log("woof log 2".to_string());
+        // me.logger.log("very long meowsers log 3 that probably takes up more than one line but i can never really be fully sure".to_string());
         me
     }
 

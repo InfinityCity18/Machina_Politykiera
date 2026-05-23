@@ -1,6 +1,10 @@
+use std::sync::{Arc, Mutex};
 use std::{io, sync::mpsc, thread, time::Duration};
 
+use log::set_logger;
+
 use crate::app::events::Event;
+use crate::app::logger::LoggerGlobal;
 use crate::app::tui::title;
 mod app;
 
@@ -31,13 +35,19 @@ fn launch_threads(event_tx: mpsc::Sender<app::events::Event>) {
 }
 
 fn main() -> io::Result<()> {
+
+    let logs_list = Arc::new(Mutex::new(Vec::new()));
+    let logger_global: &'static LoggerGlobal = Box::leak(Box::new(LoggerGlobal::new(logs_list.clone())));
+    set_logger(logger_global);
+    log::set_max_level(log::LevelFilter::Info);
+
     let mut terminal = ratatui::init();
 
     let (event_tx, event_rx) = mpsc::channel::<app::events::Event>();
 
     launch_threads(event_tx);
 
-    let mut app = app::App::new();
+    let mut app = app::App::new(logs_list.clone());
 
     let app_result = app.run(&mut terminal, event_rx);
 

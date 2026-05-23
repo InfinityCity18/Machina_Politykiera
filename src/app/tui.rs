@@ -2,8 +2,7 @@ use crate::app::events::Focus;
 use crate::app::tui::guide::render_guide;
 use crate::app::App;
 use ratatui::layout::Direction;
-use ratatui::macros::constraint;
-use ratatui::widgets::{BorderType, Borders, Paragraph};
+use ratatui::widgets::{Borders, Paragraph};
 use ratatui::{
     layout::{Alignment, Constraint, Layout},
     prelude::{Buffer, Rect},

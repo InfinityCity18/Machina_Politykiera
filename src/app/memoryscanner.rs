@@ -1,4 +1,3 @@
-use log::info;
 use nix::{
     sys::{
         ptrace::{attach, detach},
@@ -17,7 +16,7 @@ use std::{
 
 use crate::app::{
     memoryaddress::MemoryAddress,
-    scansettings::{ScanSettings, ScanValue, ScanValueType},
+    scansettings::{ScanSettings, ScanValue},
 };
 use ratatui::{
     buffer::Buffer,
@@ -299,7 +298,6 @@ mod tests {
     use std::rc::Rc;
     use std::time::Duration;
 
-    use nix::libc::remove;
     use procfs::process::Process;
 
     use crate::app::scansettings::ScanValue;

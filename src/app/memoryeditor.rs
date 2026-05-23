@@ -1,14 +1,11 @@
 use log::info;
-use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::prelude::{Buffer, Rect};
 use ratatui::widgets::{
-    Block, Borders, List, ListItem, ListState, Paragraph, StatefulWidget, Widget,
+    List, ListItem, ListState, StatefulWidget, Widget,
 };
 
 use crate::app::scansettings::ScanValue;
-use crate::app::{
-    inputfield::InputField, memoryaddress::MemoryAddress, scansettings::ScanSettings,
-};
+use crate::app::memoryaddress::MemoryAddress;
 
 pub struct MemoryEditor<'a> {
     pinned_addresses: Vec<(MemoryAddress, Option<ScanValue>)>,

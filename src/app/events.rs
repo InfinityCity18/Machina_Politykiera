@@ -77,7 +77,6 @@ impl App<'_> {
                 (_, MemoryListWindow) => self.handle_memory_list_key_event(key_event),
                 (_, MemoryEditorWindow) => self.handle_memory_edit_key_event(key_event),
                 (_, LoggerWindow) => self.handle_logger_key_event(key_event),
-                _ => (),
             }
         }
         Ok(())

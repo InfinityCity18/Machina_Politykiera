@@ -1,9 +1,6 @@
-use crossterm::event::KeyCode;
 use ratatui::widgets::Widget;
 use ratatui::widgets::{Borders, Paragraph};
-use ratatui::{
-    style::Color, style::Modifier, style::Style, text::Line, text::Span, widgets::Block,
-};
+use ratatui::widgets::Block;
 
 use crate::app::scansettings::ScanValueType;
 use crate::app::scansettings::ScanValueType::*;

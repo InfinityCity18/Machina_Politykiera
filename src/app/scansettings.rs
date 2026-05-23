@@ -198,7 +198,7 @@ impl ScanValue {
             QWord(_) => size_of::<u64>(),
             Float(_) => size_of::<f32>(),
             Double(_) => size_of::<f64>(),
-            String(x) => size_of_val(x),
+            String(x) => x.len(),
         }
     }
 }

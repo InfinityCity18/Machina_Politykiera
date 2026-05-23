@@ -28,7 +28,7 @@ use ratatui::{
 // truly
 
 pub struct MemoryScanner<'a> {
-    matching_addresses: Vec<MemoryAddress>,
+    pub matching_addresses: Vec<MemoryAddress>,
 
     pub widget_state: ListState,
     list_items: Vec<ListItem<'a>>,
@@ -82,7 +82,7 @@ impl MemoryScanner<'_> {
         }
     }
 
-    pub(super) fn addresses_and_values(&self) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
+    pub(super) fn addresses_and_values(&self, filter_addresses: &Vec<MemoryAddress>) -> Result<Vec<(MemoryAddress, Vec<u8>)>, Box<dyn Error>> {
         // its like this cuz of assumption of only one process being scanned
         let process = &self
             .matching_addresses
@@ -94,7 +94,7 @@ impl MemoryScanner<'_> {
         waitpid(Pid::from_raw(process.pid()), None).inspect_err(|x| log::error!("waitpid failed in getting values : {x}"))?;
         let mut file = File::open(format!("/proc/{}/mem", process.pid())).inspect_err(|x| log::error!("File open failed in values get : {x}"))?;
         let mut v = Vec::new();
-        for addr in &self.matching_addresses {
+        for addr in filter_addresses {
             let mut buf = Vec::with_capacity(addr.val_type.len());
             if file
                 .seek(std::io::SeekFrom::Start(addr.address as u64))
@@ -298,8 +298,8 @@ mod tests {
             Rc::new(self_proc),
             ScanValue::String("hello world".to_string()),
         );
-        ms.first_scan(sett)?;
-        let results = ms.addresses_and_values()?;
+        ms.first_scan(sett, usize::MAX)?;
+        let results = ms.addresses_and_values(&ms.matching_addresses)?;
         let found_tuple = results.get(0).ok_or("Nothing at index 0")?;
         assert_eq!(searched_string, String::from_utf8(found_tuple.1.clone())?);
         Ok(())

@@ -69,7 +69,7 @@ impl MemoryAddress {
         };
 
         format!(
-            "{:<8}{:<32}{:<12}",
+            "{:<8}{:<20}{:<12}",
             pid,
             self.address,
             self.val_type.to_string()
@@ -79,6 +79,8 @@ impl MemoryAddress {
 
 impl PartialEq for MemoryAddress {
     fn eq(&self, other: &Self) -> bool {
-        self.address == other.address && self.process.pid() == other.process.pid()
+        self.address == other.address
+            && self.process.pid() == other.process.pid()
+            && self.val_type == other.val_type
     }
 }

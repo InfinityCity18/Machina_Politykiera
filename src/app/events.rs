@@ -27,6 +27,7 @@ pub enum Focus {
     MemoryEditorWindow,
     LoggerWindow,
     ValueInputField,
+    NewValueInputField,
 }
 
 use self::Event::*;
@@ -41,6 +42,7 @@ impl App<'_> {
             Ok(ListsRefresh) => {
                 self.process_list.update();
                 self.memory_scanner.update_list();
+                self.memory_editor.update();
             }
             Err(_) => todo!("handle error bruh"),
         }
@@ -55,6 +57,7 @@ impl App<'_> {
 
                 // input
                 (_, ValueInputField) => self.scan_value_field.handle_key_event(key_event),
+                (_, NewValueInputField) => self.handle_new_value_key_event(key_event),
 
                 // when not inputing - switching focus/exiting
                 (KeyCode::Char('q'), _) => self.exit = true,
@@ -82,12 +85,14 @@ impl App<'_> {
         // actions to perform after losing focus of a window
         match self.focus_window {
             ValueInputField => self.scan_value_field.selected = false,
+            NewValueInputField => self.new_value_field.selected = false,
             _ => (),
         }
 
         // actions to perform on gaining focus of a window
         match target {
             ValueInputField => self.scan_value_field.selected = true,
+            NewValueInputField => self.new_value_field.selected = true,
             _ => (),
         }
 
@@ -119,7 +124,7 @@ impl App<'_> {
         match key_event.code {
             KeyCode::Up => self.memory_editor.widget_state.select_previous(),
             KeyCode::Down => self.memory_editor.widget_state.select_next(),
-            KeyCode::Enter => todo!(),
+            KeyCode::Enter => self.set_focus(NewValueInputField),
             _ => (),
         }
     }
@@ -129,6 +134,13 @@ impl App<'_> {
             KeyCode::Up => self.logger.scroll_up(),
             KeyCode::Down => self.logger.scroll_down(),
             _ => (),
+        }
+    }
+
+    fn handle_new_value_key_event(&mut self, key_event: crossterm::event::KeyEvent) {
+        match key_event.code {
+            KeyCode::Enter => self.edit_selected_value(),
+            _ => self.new_value_field.handle_key_event(key_event),
         }
     }
 }

@@ -2,13 +2,14 @@ use crate::app::events::Focus;
 use crate::app::App;
 use ratatui::layout::Direction;
 use ratatui::macros::constraint;
-use ratatui::widgets::{Borders, Paragraph};
+use ratatui::widgets::{BorderType, Borders, Paragraph};
 use ratatui::{
     layout::{Alignment, Constraint, Layout},
     prelude::{Buffer, Rect},
     style::{Color, Style},
     widgets::{Block, Widget, Wrap},
 };
+pub mod guide;
 pub mod title;
 
 impl Widget for &mut App<'_> {
@@ -163,7 +164,18 @@ impl Widget for &mut App<'_> {
 
         // draw memory editor
         (&memory_editor_block).render(right_cols[1], buf);
-        self.memory_editor
-            .render(memory_editor_block.inner(right_cols[1]), buf);
+        let memory_editor_column = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Fill(1),
+                Constraint::Length(3),
+                Constraint::Length(5),
+            ])
+            .split(memory_editor_block.inner(right_cols[1]));
+
+        self.memory_editor.render(memory_editor_column[0], buf);
+        self.new_value_field.render(memory_editor_column[1], buf);
+        Paragraph::new("Type above the new value for the selected memory address. Make sure it matches the correct type and press enter to overwrite.")
+            .wrap(Wrap { trim: true }).block(Block::default().borders(Borders::all())).render(memory_editor_column[2], buf);
     }
 }

@@ -39,6 +39,8 @@ pub struct App<'a> {
     scan_value_field: InputField,
     scan_type_selector: TypeSelector,
 
+    new_value_field: InputField,
+
     focus_window: Focus,
 }
 
@@ -56,19 +58,20 @@ impl App<'_> {
             focus_window: Focus::ProcessListWindow,
             scan_value_field: InputField::new(" [V]alue ".to_string()),
             scan_type_selector: TypeSelector::new(),
+
+            new_value_field: InputField::new(" New Value ".to_string()),
         };
 
         me.process_list.update();
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
-        me.logger.log("we are many".to_string());
+        me.logger.log("we are many1".to_string());
+        me.logger.log("we are many2".to_string());
+        me.logger.log("we are many3".to_string());
+        me.logger.log("we are many4".to_string());
+        me.logger.log("we are many5".to_string());
+        me.logger.log("we are many6".to_string());
+        me.logger.log("we are many7".to_string());
+        me.logger.log("we are many8".to_string());
+        me.logger.log("we are many9".to_string());
         me.logger.log("meow log 1".to_string());
         me.logger.log("woof log 2".to_string());
         me.logger.log("very long meowsers log 3 that probably takes up more than one line but i can never really be fully sure".to_string());
@@ -128,6 +131,25 @@ impl App<'_> {
         } {
             Ok(()) => (),
             Err(_) => (), // should be handled probs, or logged
+        };
+    }
+
+    // replace wall of returns with logging
+    pub fn edit_selected_value(&mut self) {
+        let addr = match self.memory_editor.get_selected() {
+            Some(ad) => ad,
+            None => return,
+        };
+
+        let val =
+            match ScanValue::from_user_input(self.new_value_field.input.clone(), addr.val_type) {
+                Ok(v) => v,
+                Err(_) => return,
+            };
+
+        match addr.set_value(val) {
+            Ok(()) => return,
+            Err(_) => return,
         };
     }
 

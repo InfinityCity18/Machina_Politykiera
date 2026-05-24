@@ -61,8 +61,8 @@ impl MemoryScanner<'_> {
             Some(ind) => ind,
         };
 
-        let l = 0.max(ind.saturating_sub(REFRESH_WINDOW_SIZE));
-        let r = (self.matching_addresses.len() - 1).min(ind + REFRESH_WINDOW_SIZE);
+        let l = usize::clamp(ind.saturating_sub(REFRESH_WINDOW_SIZE),0,self.matching_addresses.len());
+        let r = usize::clamp(ind + REFRESH_WINDOW_SIZE,0,self.matching_addresses.len()-1);
 
         match self.addresses_and_values(&self.matching_addresses[l..=r]) {
             Ok(items) => {
